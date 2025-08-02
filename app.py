@@ -13,12 +13,10 @@ import time
 
 app = Flask(__name__)
 
-# Define a secret key for Flask
-app.secret_key = "your_secret_key_here"
 
 # Specify a directory to store uploaded files -- TODO Acrescentar a sessao do user
 UPLOAD_FOLDER = 'images'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'mp4'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'mp4', 'mov'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Increase the server timeout value to 300 seconds  -  comecou apresentar a mensagem 413 Request Entity Too Large
@@ -144,8 +142,9 @@ def process_video():
                     clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
 
         # If video
-        if file.endswith(".mp4"):
+        if file.endswith(".mp4") or file.endswith(".mov"):
             clip = VideoFileClip("images/" + file)
+            clip = clip.with_effects([vfx.Resize(height=1080)])
             clip = clip.with_effects([vfx.FadeIn(FADEIN_TIME)])
             clip = clip.with_effects([vfx.FadeOut(FADEOUT_TIME)])
             clips.append(clip)
@@ -175,8 +174,6 @@ def delete_files():
                 except Exception as e:
                     print(f'Erro ao deletar {file_path}: {e}')
 
-    return render_template('index.html')
-
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_process_download():
@@ -185,7 +182,7 @@ def upload_process_download():
         if request.form.get('upload'):
             # Call the upload function
             upload_files()
-            # created because the process wasn't enable
+            # Created because the process button wasn't showing up after upload.
             time.sleep(1)
             return redirect("/")
         elif request.form.get('process'):
@@ -195,7 +192,8 @@ def upload_process_download():
             return redirect('/')
         elif request.form.get('delete'):
             # Call the delete function
-            return delete_files()
+            delete_files()
+            return redirect('/')
 
     # Check if video file exist. If yes, the download button will activate
     if os.path.exists(path_video):
@@ -213,5 +211,5 @@ def upload_process_download():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, threaded=True)
+    app.run(debug=True)
 
