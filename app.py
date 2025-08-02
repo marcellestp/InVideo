@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 import imagesize
 import multiprocessing
 import os
+import pyautogui
 import time
 
 
@@ -29,6 +30,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
 height_default = 1080
 clips = []
 files_path = os.path.join(app.config['UPLOAD_FOLDER'])
+path_video_temp = "static/out_temp.mp4"
 path_video = "static/output.mp4"
 
 # Create the uploads directory if it doesn't exist
@@ -39,18 +41,6 @@ if not os.path.exists(UPLOAD_FOLDER):
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def timeout_decorator(timeout):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except TimeoutError:
-                abort(408)
-        return wrapper
-    return decorator
 
 
 # Make crop on images greater then 1920 x 1080
@@ -97,7 +87,6 @@ def upload_files():
     # return render_template('index.html')
 
 
-@timeout_decorator(300)  # 30-second timeout
 def process_video():
     clips = []
     TIME = 3
@@ -162,19 +151,21 @@ def process_video():
             clips.append(clip)
 
     video_clip = concatenate_videoclips(clips, method='compose')
-    video_clip.write_videofile("static/output.mp4", fps=24)
-
-    # Check if the upload file exist. If yes, the link to download will appear
+    video_clip.write_videofile(path_video_temp, fps=24)
     if os.path.exists(path_video):
-        exist_video = 1
+        os.remove(path_video)
+        os.rename(path_video_temp, path_video)
+    else:
+        os.rename(path_video_temp, path_video)
 
-    return render_template('index.html', exist_video = exist_video)
+    pyautogui.hotkey('f5')
+
+    return redirect('/')
 
 
 def delete_files():
     if request.method == 'POST':
         # Check if there's a video with the same name in the static directory
-        # files_path = os.path.join(app.config['UPLOAD_FOLDER'])
         if os.path.exists(files_path):
             for filename in os.listdir(files_path):
                 file_path = os.path.join(files_path, filename)
@@ -197,12 +188,11 @@ def upload_process_download():
             # created because the process wasn't enable
             time.sleep(1)
             return redirect("/")
-            # return render_template('index.html')
         elif request.form.get('process'):
             # Call the process function
             process = multiprocessing.Process(target=process_video)
             process.start()
-            return render_template('index.html')
+            return redirect('/')
         elif request.form.get('delete'):
             # Call the delete function
             return delete_files()
