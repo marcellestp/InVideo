@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 import imagesize
 import multiprocessing
 import os
-import pyautogui
+# import pyautogui
 import time
 
 
@@ -158,7 +158,7 @@ def process_video():
     else:
         os.rename(path_video_temp, path_video)
 
-    pyautogui.hotkey('f5')
+    # pyautogui.hotkey('f5')
 
     return redirect('/')
 
