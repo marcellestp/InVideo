@@ -68,7 +68,7 @@
     </div>
 
     <div class="container">
-        <h1 id="about" class="text-center p-5 mb-5 mt-5">Make your own videos and create unforgettable memories!</h1>
+        <h1 id="about" class="text-center p-2 mt-5 mb-5">Make your own videos and create unforgettable memories!</h1>
         <div class="w-100 bg-dark-subtle p-5 mb-5">
             <p>Hello! If you want to combine your photos and/or videos into a single video, you've come to the right place. </p>
             <p>First, you'll need to select the photos and/or videos you want to combine into a single video. Then, you'll need to upload these selected files.</p>
@@ -76,14 +76,15 @@
             <p>Finally, don't forget to download the video.</p>
         </div>
         <form action="" method="post" enctype="multipart/form-data">
-        <h2 id="upload" class="fs-1 p-5 mt-5 mb-5 text-center">Upload Files</h2>
+        <h2 id="upload" class="fs-1 p-2 mt-5 mb-5 text-center">Upload Files</h2>
         <div class="card text-center">
         <h5 class="card-header">
             Selection and Upload of Photos and Videos
         </h5>
         <div class="card-body">
             <h5 class="card-title"></h5>
-            <p class="card-text">Select the photos and/or videos you want to combine into a single video.</p>
+            <p class="card-text">Select the photos and/or videos you want to combine into a single video. </p>
+            <p>You can only upload 16MB of photos at a time, but you can upload them multiple times. After uploading the photos, you can delete them using the delete button, or they will be deleted after 12 hours.</p>
             <input class="btn btn-light" type="file" name="file[]" multiple accept=".png, .jpg, .jpeg, .mp4">
             <p></p>
             <p class="card-text">Before processing the single video, you'll need to upload the photos and/or videos.</p>
@@ -91,7 +92,7 @@
         </div>
         </div>
 
-        <h2 class="fs-1 p-5 mt-5 mb-5 text-center">Processing</h2>
+        <h2 class="fs-1 p-2 mt-5 mb-5 text-center">Processing</h2>
         <div class="card text-center">
         <h5 class="card-header">
             Video Processing
@@ -107,14 +108,14 @@
         </div>
         </div>
 
-        <h2 id="download" class="fs-1 p-5 mt-5 mb-5 text-center">Download</h2>
+        <h2 id="download" class="fs-1 p-2 mt-5 mb-5 text-center">Download</h2>
         <div class="card text-center">
         <h5 class="card-header">
             Download Video
         </h5>
         <div class="card-body">
             <h5 class="card-title"></h5>
-            <p class="card-text">Don't forget to save your video. I hope you enjoy it!</p>
+            <p class="card-text">Don't forget to save the video. The download button will be activated when the video is ready. I hope you enjoy it!</p>
             {% if exist_video == 1 %}
                 <button type="button" class="btn btn-success"><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">Download</a></button>
             {% else %}
@@ -123,7 +124,7 @@
         </div>
         </div>
 
-        <h2 class="fs-1 p-5 mt-5 mb-5 text-center">Delete Files</h2>
+        <h2 class="fs-1 p-2 mt-5 mb-5 text-center">Delete Files</h2>
         <div class="card text-center">
         <h5 class="card-header">
             Delete Files
@@ -137,7 +138,7 @@
 
         </form>
 
-        <h2 id="contact" class="fs-1 p-5 mt-5 mb-5 text-center">Contact Us</h2>
+        <h2 id="contact" class="fs-1 p-2 mt-5 mb-5 text-center">Contact Us</h2>
         <div class="card text-center">
         <h5 class="card-header">
             Contact
@@ -150,12 +151,11 @@
         </div>
 
     </div>
-
-    <p></p>
-    <p></p>
+    <br>
+    <br>
 
     <!-- Footer of the homepage -->
-    <div class="footer">
+    <div class="text-center bg-dark text-white text-decoration-none">
         <p><b>By Marcelle da Silva</b></p>
     </div>
 
