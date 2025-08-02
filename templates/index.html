@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>InVideo</title>
+    <link href="static/img/invideo.ico" rel="icon">
     <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous"> -->
     <link href="static/bootstrap.min.css" rel="stylesheet">
 </head>
@@ -23,8 +24,11 @@
                 <a class="nav-link" href="#upload">Upload Files</a>
                 </li>
                 <li class="nav-item">
-                <a class="nav-link" href="#download">Download File</a>
+                <a class="nav-link" href="#download">Download Video</a>
                 </li>
+                <li class="nav-item">
+                <a class="nav-link" href="#delete">Delete Files</a>
+                </li>                
                 <li class="nav-item">
                 <a class="nav-link" href="#about">About</a>
                 </li>
@@ -36,12 +40,12 @@
         </div>
     </nav>
 
-    <div id="carouselExampleIndicators" class="carousel slide">
+    <div id="carousel" class="carousel slide">
         <div class="carousel-indicators">
-            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
-            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
-            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="3" aria-label="Slide 4"></button>
+            <button type="button" data-bs-target="#carousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#carousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#carousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+            <button type="button" data-bs-target="#carousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
         </div>
         <div class="carousel-inner">
             <div class="carousel-item active">
@@ -57,11 +61,11 @@
             <img src="/static/img/sun4.jpg" class="d-block w-100" alt="Sunset4">
             </div>
         </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+        <button class="carousel-control-prev" type="button" data-bs-target="#carousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
         </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+        <button class="carousel-control-next" type="button" data-bs-target="#carousel" data-bs-slide="next">
             <span class="carousel-control-next-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Next</span>
         </button>
@@ -70,7 +74,7 @@
     <div class="container">
         <h1 id="about" class="text-center p-2 mt-5 mb-5">Make your own videos and create unforgettable memories!</h1>
         <div class="w-100 bg-dark-subtle p-5 mb-5">
-            <p>Hello! If you want to combine your photos and/or videos into a single video, you've come to the right place. </p>
+            <p>Hello! If you want to combine your photos and/or videos into a single video, you've come to the right place.</p>
             <p>First, you'll need to select the photos and/or videos you want to combine into a single video. Then, you'll need to upload these selected files.</p>
             <p>After uploading, you'll be able to process the video. Currently, the default time for each photo is 3 seconds with a fade-in/fade-out effect and a resolution of 1920x1080.</p>
             <p>Finally, don't forget to download the video.</p>
@@ -84,7 +88,7 @@
         <div class="card-body">
             <h5 class="card-title"></h5>
             <p class="card-text">Select the photos and/or videos you want to combine into a single video. </p>
-            <p>You can only upload 16MB of photos at a time, but you can upload them multiple times. After uploading the photos, you can delete them using the delete button, or they will be deleted after 12 hours.</p>
+            <p>You can only upload 16MB of photos at a time, but you can upload them multiple times. After uploading the photos, you can delete them using the delete button, or they will be deleted after some time.</p>
             <input class="btn btn-light" type="file" name="file[]" multiple accept=".png, .jpg, .jpeg, .mp4">
             <p></p>
             <p class="card-text">Before processing the single video, you'll need to upload the photos and/or videos.</p>
@@ -124,7 +128,7 @@
         </div>
         </div>
 
-        <h2 class="fs-1 p-2 mt-5 mb-5 text-center">Delete Files</h2>
+        <h2 id="delete" class="fs-1 p-2 mt-5 mb-5 text-center">Delete Files</h2>
         <div class="card text-center">
         <h5 class="card-header">
             Delete Files
