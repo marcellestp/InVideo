@@ -1,35 +1,41 @@
-from flask import Flask, request, render_template, redirect, url_for, flash
-from functools import wraps
-from exif import Image
-from glob import glob
-from moviepy import *
-from werkzeug.utils import secure_filename
-import imagesize
+"""
+docstring here
+"""
 import multiprocessing
 import os
 # import pyautogui
 import time
+import imagesize
+from flask import Flask, request, render_template, redirect
+from exif import Image
+from moviepy import vfx, ImageClip, concatenate_videoclips, VideoFileClip
+from werkzeug.utils import secure_filename
 
 
 app = Flask(__name__)
 
 
-# Specify a directory to store uploaded files -- TODO Acrescentar a sessao do user
-UPLOAD_FOLDER = 'images'
+# Specify a directory to store uploaded files.
+UPLOAD_FOLDER = 'images/'
+# File extensions the system will accept.
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'mp4', 'mov'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Increase the server timeout value to 300 seconds  -  comecou apresentar a mensagem 413 Request Entity Too Large
-# app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 300
+# Will limit the maximum allowed payload to 16 megabytes.
+# If a larger file is transmitted, Flask will raise a
+# RequestEntityTooLarge exception.
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-# Will limit the maximum allowed payload to 16 megabytes. If a larger file is transmitted, Flask will raise a RequestEntityTooLarge exception.
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
+# Acrescentar a sessao do user
 
-height_default = 1080
+HEIGHT_DEFAULT = 1080
 clips = []
-files_path = os.path.join(app.config['UPLOAD_FOLDER'])
-path_video_temp = "static/out_temp.mp4"
-path_video = "static/output.mp4"
+FILES_PATH = os.path.join(app.config['UPLOAD_FOLDER'])
+PATH_VIDEO_TEMP = "static/out_temp.mp4"
+PATH_VIDEO = "static/output.mp4"
+TIME = 3
+FADEIN_TIME = 0.2
+FADEOUT_TIME = 0.2
 
 # Create the uploads directory if it doesn't exist
 if not os.path.exists(UPLOAD_FOLDER):
@@ -37,38 +43,49 @@ if not os.path.exists(UPLOAD_FOLDER):
 
 
 def allowed_file(filename):
+    """
+    It will ensure that only the defined extensions are accepted when uploading files.
+    """ 
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # Make crop on images greater then 1920 x 1080
 def crop_image(img_height, img_width, file):
-
+    """
+    It will define default height and width according to the image's position
+     (vertical or horizontal).
+    """
     # Vertical image
     if img_height > img_width:
         width_default = 1080
-        clip = ImageClip("images/" + file)
-        clip = clip.with_effects([vfx.Resize(height=height_default)])
+        clip = ImageClip(app.config['UPLOAD_FOLDER'] + file)
+        clip = clip.with_effects([vfx.Resize(height=HEIGHT_DEFAULT)])
         new_width, new_height = clip.size
         new_height_center = new_height / 2
-        y1_pos = new_height_center - (height_default / 2)
-        y2_pos = new_height_center + (height_default / 2)
-        clip = clip.with_effects([vfx.Crop(x1=0, y1=y1_pos, x2=width_default, y2=y2_pos)])
+        y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
+        y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
+        clip = clip.with_effects([
+            vfx.Crop(x1=0, y1=y1_pos, x2=width_default, y2=y2_pos)])
     else:
         # Horizonte image
         width_default = 1920
-        clip = ImageClip("images/" + file)
+        clip = ImageClip(app.config['UPLOAD_FOLDER'] + file)
         clip = clip.with_effects([vfx.Resize(width=width_default)])
         new_width, new_height = clip.size
         new_height_center = new_height / 2
-        y1_pos = new_height_center - (height_default / 2)
-        y2_pos = new_height_center + (height_default / 2)
-        clip = clip.with_effects([vfx.Crop(x1=0, y1=y1_pos, x2=width_default, y2=y2_pos)])
+        y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
+        y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
+        clip = clip.with_effects([
+            vfx.Crop(x1=0, y1=y1_pos, x2=width_default, y2=y2_pos)])
 
     return clip
 
 
 def upload_files():
+    """
+    It will be responsible for uploading only files with the defined extensions.
+    """
     if request.method == 'POST':
         # Get the list of uploaded files
         files = request.files.getlist('file[]')
@@ -77,26 +94,25 @@ def upload_files():
             for file in files:
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename.lower()))
+                    file.save(os.path.join(
+                        app.config['UPLOAD_FOLDER'], filename.lower()))
             # return 'Files uploaded successfully.'
         else:
             return 'No files uploaded.'
 
-    # return render_template('index.html')
+    return None
 
 
 def process_video():
-    clips = []
-    TIME = 3
-    FADEIN_TIME = 0.2
-    FADEOUT_TIME = 0.2
-    FULL_HD = 1920
+    """
+    It will be responsible for concatenating the existing files
+     in the user's directory and processing the video at the end.
+    """
     ratio_hd = round(1920 / 1080, 2)
-    # LAMBDA_EFFECT = lambda t : 1+0.02*t
 
     # Using sorted to sort the list of files
     # https://docs.python.org/3/howto/sorting.html
-    for file in sorted(os.listdir("images/")):
+    for file in sorted(os.listdir(app.config['UPLOAD_FOLDER'])):
         if file.endswith(".jpg") or file.endswith(".jpeg") or file.endswith(".png"):
             with open("images/" + file, "rb") as image_file:
                 file_exif = Image(image_file)
@@ -104,9 +120,9 @@ def process_video():
                     img_height = file_exif.image_height
                     img_width = file_exif.image_width
                 except AttributeError:
-                    img_width, img_height = imagesize.get("images/" + file)
+                    img_width, img_height = imagesize.get(app.config['UPLOAD_FOLDER'] + file)
                 except KeyError:
-                    img_width, img_height = imagesize.get("images/" + file)
+                    img_width, img_height = imagesize.get(app.config['UPLOAD_FOLDER'] + file)
 
                 # Check the aspect ratio, and if diff of 1.77, crop the image
                 ratio = round(img_height / img_width, 2)
@@ -116,9 +132,9 @@ def process_video():
                 if file_exif.has_exif:
                     try:
 
-                        if (file_exif.orientation == 1 or file_exif.orientation == 2):
+                        if file_exif.orientation in (1, 2):
                             clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
-                        elif (file_exif.orientation == 6 or file_exif.orientation == 7):
+                        elif file_exif.orientation in (6, 7):
                             clip = clip.with_duration(TIME)
                             clip = clip.with_effects([vfx.Resize(width=1080)])
                             clip = clip.with_effects([vfx.Rotate(270)])
@@ -127,9 +143,9 @@ def process_video():
                             # clip = clip.with_effects([vfx.Resize(LAMBDA_EFFECT)])
                             clips.append(clip)
 
-                        elif (file_exif.orientation == 5 or file_exif.orientation == 8):
+                        elif file_exif.orientation in (1, 8):
                             clips.append(clip.with_duration(TIME).with_effects([vfx.Resize(width=1080), vfx.Rotate(90), vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
-                        elif (file_exif.orientation == 3 or file_exif.orientation == 4):
+                        elif file_exif.orientation in (1, 4):
                             clips.append(clip.with_duration(TIME).with_effects([vfx.Resize(width=1080), vfx.Rotate(180), vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
                         else:
                             clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
@@ -143,19 +159,19 @@ def process_video():
 
         # If video
         if file.endswith(".mp4") or file.endswith(".mov"):
-            clip = VideoFileClip("images/" + file)
-            clip = clip.with_effects([vfx.Resize(height=1080)])
+            clip = VideoFileClip(app.config['UPLOAD_FOLDER'] + file)
+            clip = clip.with_effects([vfx.Resize(height=HEIGHT_DEFAULT)])
             clip = clip.with_effects([vfx.FadeIn(FADEIN_TIME)])
             clip = clip.with_effects([vfx.FadeOut(FADEOUT_TIME)])
             clips.append(clip)
 
     video_clip = concatenate_videoclips(clips, method='compose')
-    video_clip.write_videofile(path_video_temp, fps=24)
-    if os.path.exists(path_video):
-        os.remove(path_video)
-        os.rename(path_video_temp, path_video)
+    video_clip.write_videofile(PATH_VIDEO_TEMP, fps=24)
+    if os.path.exists(PATH_VIDEO):
+        os.remove(PATH_VIDEO)
+        os.rename(PATH_VIDEO_TEMP, PATH_VIDEO)
     else:
-        os.rename(path_video_temp, path_video)
+        os.rename(PATH_VIDEO_TEMP, PATH_VIDEO)
 
     # pyautogui.hotkey('f5')
 
@@ -163,11 +179,14 @@ def process_video():
 
 
 def delete_files():
+    """
+    It will delete the existing files in the user's directory.
+    """
     if request.method == 'POST':
         # Check if there's a video with the same name in the static directory
-        if os.path.exists(files_path):
-            for filename in os.listdir(files_path):
-                file_path = os.path.join(files_path, filename)
+        if os.path.exists(FILES_PATH):
+            for filename in os.listdir(FILES_PATH):
+                file_path = os.path.join(FILES_PATH, filename)
                 try:
                     if os.path.isfile(file_path) or os.path.islink(file_path):
                         os.remove(file_path)
@@ -177,39 +196,43 @@ def delete_files():
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_process_download():
+    """
+    It will be responsible for identifying which option the user
+     is selecting on the system's main page.
+    """
     if request.method == 'POST':
         # Check which button was clicked
         if request.form.get('upload'):
             # Call the upload function
             upload_files()
-            # Created because the process button wasn't showing up after upload.
+            # Created because the process button wasn't showing up after upload
             time.sleep(1)
             return redirect("/")
-        elif request.form.get('process'):
+        if request.form.get('process'):
             # Call the process function
             process = multiprocessing.Process(target=process_video)
             process.start()
             return redirect('/')
-        elif request.form.get('delete'):
+        if request.form.get('delete'):
             # Call the delete function
             delete_files()
             return redirect('/')
 
     # Check if video file exist. If yes, the download button will activate
-    if os.path.exists(path_video):
+    if os.path.exists(PATH_VIDEO):
         exist_video = 1
     else:
         exist_video = 0
 
     # Check if the upload file exist. If yes, the process button will activate
-    if os.listdir(files_path) != []:
+    if os.listdir(FILES_PATH) != []:
         exist_file = 1
     else:
         exist_file = 0
 
-    return render_template('index.html', exist_video = exist_video, exist_file = exist_file)
+    return render_template('index.html', exist_video=exist_video,
+        exist_file=exist_file)
 
 
 if __name__ == '__main__':
     app.run(debug=True)
-
