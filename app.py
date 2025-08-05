@@ -3,9 +3,11 @@ docstring here
 """
 import multiprocessing
 import os
-# import pyautogui
+import tempfile
+import shutil
 import time
 import imagesize
+import uuid
 from flask import Flask, request, render_template, redirect
 from exif import Image
 from moviepy import vfx, ImageClip, concatenate_videoclips, VideoFileClip
@@ -15,18 +17,23 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 
 
+# # Generate a random UUID for user session
+# my_uuid = uuid.uuid4()
+# # Convert the UUID object to a string
+# uuid_str = str(my_uuid)
+# # Extract the first 8 characters
+# USER_ID = uuid_str[:8]
+
+# print(f"UUID object: {my_uuid}")
+# print(f"UserID: {USER_ID}")
+
 # Specify a directory to store uploaded files.
 UPLOAD_FOLDER = 'images/'
+# UPLOAD_FOLDER = f"{USER_ID}/{IMAGES_DIR}"
 # File extensions the system will accept.
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'mp4', 'mov'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-# Will limit the maximum allowed payload to 16 megabytes.
-# If a larger file is transmitted, Flask will raise a
-# RequestEntityTooLarge exception.
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-
-# Acrescentar a sessao do user
+print(f"PATH fotos: {UPLOAD_FOLDER}")
 
 HEIGHT_DEFAULT = 1080
 clips = []
@@ -87,19 +94,25 @@ def upload_files():
     It will be responsible for uploading only files with the defined extensions.
     """
     if request.method == 'POST':
-        # Get the list of uploaded files
-        files = request.files.getlist('file[]')
-        if files:
+        # Get the list of files
+        if 'files' not in request.files:
+            return 'No files part'
+        files = request.files.getlist('files')
+        if files == []:
+            return 'No files selected'
+        elif files:
+            temp_dir = tempfile.mkdtemp()
             # Save each file to the uploads directory
             for file in files:
-                if file and allowed_file(file.filename):
+                if file and allowed_file(file.filename):                    
                     filename = secure_filename(file.filename)
-                    file.save(os.path.join(
-                        app.config['UPLOAD_FOLDER'], filename.lower()))
-            # return 'Files uploaded successfully.'
+                    file.save(os.path.join(temp_dir, filename.lower()))
+            for file in files:
+                shutil.copy(os.path.join(temp_dir, file.filename), UPLOAD_FOLDER)
+            shutil.rmtree(temp_dir)
+            return 'Files uploaded successfully.'
         else:
             return 'No files uploaded.'
-
     return None
 
 
@@ -173,8 +186,6 @@ def process_video():
     else:
         os.rename(PATH_VIDEO_TEMP, PATH_VIDEO)
 
-    # pyautogui.hotkey('f5')
-
     return redirect('/')
 
 
@@ -211,7 +222,8 @@ def upload_process_download():
         if request.form.get('process'):
             # Call the process function
             process = multiprocessing.Process(target=process_video)
-            process.start()
+            process.start() # Begin the process execution
+            process.join()  # Wait for the process to finish
             return redirect('/')
         if request.form.get('delete'):
             # Call the delete function
@@ -227,6 +239,7 @@ def upload_process_download():
     # Check if the upload file exist. If yes, the process button will activate
     if os.listdir(FILES_PATH) != []:
         exist_file = 1
+        # return redirect("/")
     else:
         exist_file = 0
 

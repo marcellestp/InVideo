@@ -73,11 +73,12 @@
 
     <div class="container">
         <h1 id="about" class="text-center p-2 mt-5 mb-5">Make your own videos and create unforgettable memories!</h1>
-        <div class="w-100 bg-dark-subtle p-5 mb-5">
+        <div class="w-100 bg-dark-subtle text-center p-5 mb-5">
             <p>Hello! If you want to combine your photos and/or videos into a single video, you've come to the right place.</p>
             <p>First, you'll need to select the photos and/or videos you want to combine into a single video. Then, you'll need to upload these selected files.</p>
-            <p>After uploading, you'll be able to process the video. Currently, the default time for each photo is 3 seconds with a fade-in/fade-out effect and a resolution of 1920x1080.</p>
-            <p>Finally, don't forget to download the video.</p>
+            <p>After uploading, you'll be able to process the video.</p>
+            <p>Currently, the default time for each photo is 3 seconds with a fade-in/fade-out effect and a resolution of 1920x1080.</p>
+            <p>Finally, don't forget to download the video. I hope you enjoy it!</p>
         </div>
         <form action="" method="post" enctype="multipart/form-data">
         <h2 id="upload" class="fs-1 p-2 mt-5 mb-5 text-center">Upload Files</h2>
@@ -88,8 +89,8 @@
         <div class="card-body">
             <h5 class="card-title"></h5>
             <p class="card-text">Select the photos and/or videos you want to combine into a single video. </p>
-            <p>You can only upload 16MB of photos at a time, but you can upload them multiple times. After uploading the photos, you can delete them using the delete button, or they will be deleted after some time.</p>
-            <input class="btn btn-light" type="file" name="file[]" multiple accept=".png, .jpg, .jpeg, .mp4, .mov">
+            <p>After uploading the photos, you can delete them using the delete button, or they will be deleted after some time.</p>
+            <input class="btn btn-light" type="file" name="files" multiple accept=".png, .jpg, .jpeg, .mp4, .mov">
             <p></p>
             <p class="card-text">Before processing the single video, you'll need to upload the photos and/or videos.</p>
             <input class="btn btn-primary" type="submit" name="upload" value="Upload Files">
@@ -119,11 +120,13 @@
         </h5>
         <div class="card-body">
             <h5 class="card-title"></h5>
-            <p class="card-text">Don't forget to save the video. The download button will be activated when the video is ready. I hope you enjoy it!</p>
+            <p class="card-text">The View and Download button will be activated when the video is ready.</p>
+            <p>Before downloading, you can preview the video.</p>
+            <p>Finally, don't forget to save the video.</p>
             {% if exist_video == 1 %}
-                <button type="button" class="btn btn-success"><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">Download</a></button>
+                <button type="button" class="btn btn-success"><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">View and Download</a></button>
             {% else %}
-                <button type="button" class="btn btn-secondary" disabled><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">Download</a></button>
+                <button type="button" class="btn btn-secondary" disabled><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">View and Download</a></button>
             {% endif %}
         </div>
         </div>
