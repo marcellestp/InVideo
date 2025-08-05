@@ -4,4 +4,3 @@ exif
 imagesize
 Werkzeug
 Jinja2
-pyautogui

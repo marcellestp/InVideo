@@ -104,11 +104,14 @@ def upload_files():
             temp_dir = tempfile.mkdtemp()
             # Save each file to the uploads directory
             for file in files:
-                if file and allowed_file(file.filename):                    
+                if file and allowed_file(file.filename):
+                    # secure_filename resolving file with space in name               
                     filename = secure_filename(file.filename)
                     file.save(os.path.join(temp_dir, filename.lower()))
             for file in files:
-                shutil.copy(os.path.join(temp_dir, file.filename), UPLOAD_FOLDER)
+                # secure_filename resolving file with space in name
+                filename = secure_filename(file.filename)
+                shutil.copy(os.path.join(temp_dir, filename), UPLOAD_FOLDER)
             shutil.rmtree(temp_dir)
             return 'Files uploaded successfully.'
         else:
