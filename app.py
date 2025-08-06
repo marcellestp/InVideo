@@ -108,11 +108,15 @@ def upload_files():
                 if file and allowed_file(file.filename):
                     # secure_filename resolving file with space in name               
                     filename = secure_filename(file.filename)
+                    # Adding the lower() to avoid issues with the extension
+                    # when processing the pictures/videos
                     file.save(os.path.join(temp_dir, filename.lower()))
             for file in files:
                 # secure_filename resolving file with space in name
                 filename = secure_filename(file.filename)
-                shutil.copy(os.path.join(temp_dir, filename), UPLOAD_FOLDER)
+                # Adding the lower() to avoid issues with the extension
+                # when processing the pictures/videos
+                shutil.copy(os.path.join(temp_dir, filename.lower()), UPLOAD_FOLDER)
             shutil.rmtree(temp_dir)
             return 'Files uploaded successfully.'
         else:
