@@ -4,3 +4,4 @@ exif
 imagesize
 Werkzeug
 Jinja2
+pyexiftool
