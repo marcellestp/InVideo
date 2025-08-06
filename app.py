@@ -153,49 +153,78 @@ def process_video():
     # https://docs.python.org/3/howto/sorting.html
     for file in sorted(os.listdir(app.config['UPLOAD_FOLDER'])):
         if file.endswith(".jpg") or file.endswith(".jpeg") or file.endswith(".png"):
-            with open("images/" + file, "rb") as image_file:
-                file_exif = Image(image_file)
-                try:
-                    img_height = file_exif.image_height
-                    img_width = file_exif.image_width
-                except AttributeError:
-                    img_width, img_height = imagesize.get(app.config['UPLOAD_FOLDER'] + file)
-                except KeyError:
-                    img_width, img_height = imagesize.get(app.config['UPLOAD_FOLDER'] + file)
+            # with open("images/" + file, "rb") as image_file:
+            with open("images/" + file, "rb") as fp:
+                print("DEBUG: New one")
+                with exiftool.ExifToolHelper() as image_file:
+                    print("DEBUG: New two")
+                    print(f"file: {fp.name}")
+                    file_exif = image_file.get_metadata(fp.name)
+                    print("DEBUG: New 3")
+                    # print(f"Orientation: {file_exif[0]}")
+                    # print(f"Orientation: {file_exif[0]['EXIF:Orientation']}")
+                    # print(f"File:ImageHeight: {file_exif[0]['File:ImageHeight']}")
+                    # print(f"EXIF:ImageHeight: {file_exif[0]['EXIF:ImageHeight']}")
 
-                # Check the aspect ratio, and if diff of 1.77, crop the image
-                ratio = round(img_height / img_width, 2)
-                # if ratio != ratio_hd:
-                #     clip = crop_image(img_height, img_width, file)
-                clip = crop_image(img_height, img_width, file)
+                    # print(f"File:ImageWidth: {file_exif[0]['File:ImageWidth']}")
+                    # print(f"EXIF:ImageWidth: {file_exif[0]['EXIF:ImageWidth']}")
 
-                if file_exif.has_exif:
+                    # file_exif = Image(image_file)
                     try:
-
-                        if file_exif.orientation in (1, 2):
-                            clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
-                        elif file_exif.orientation in (6, 7):
-                            clip = clip.with_duration(TIME)
-                            clip = clip.with_effects([vfx.Resize(width=1080)])
-                            clip = clip.with_effects([vfx.Rotate(270)])
-                            clip = clip.with_effects([vfx.FadeIn(FADEIN_TIME)])
-                            clip = clip.with_effects([vfx.FadeOut(FADEOUT_TIME)])
-                            # clip = clip.with_effects([vfx.Resize(LAMBDA_EFFECT)])
-                            clips.append(clip)
-
-                        elif file_exif.orientation in (1, 8):
-                            clips.append(clip.with_duration(TIME).with_effects([vfx.Resize(width=1080), vfx.Rotate(90), vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
-                        elif file_exif.orientation in (1, 4):
-                            clips.append(clip.with_duration(TIME).with_effects([vfx.Resize(width=1080), vfx.Rotate(180), vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
-                        else:
-                            clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
+                        # img_height = file_exif.image_height
+                        # img_width = file_exif.image_width
+                        # img_height = file_exif[0]['EXIF:ImageHeight']
+                        # img_width = file_exif[0]['EXIF:ImageWidth']
+                        img_height = file_exif[0]['File:ImageHeight']
+                        img_width = file_exif[0]['File:ImageWidth']
                     except AttributeError:
-                        clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
-                    except ValueError:
-                        clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
+                        img_width, img_height = imagesize.get(app.config['UPLOAD_FOLDER'] + file)
+                    except KeyError:
+                        img_width, img_height = imagesize.get(app.config['UPLOAD_FOLDER'] + file)
 
-                else:
-                    clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
+                    # Check the aspect ratio, and if diff of 1.77, crop the image
+                    ratio = round(img_height / img_width, 2)
+                    # if ratio != ratio_hd:
+                    #     clip = crop_image(img_height, img_width, file)
+                    clip = crop_image(img_height, img_width, file)
+
+                    try:
+                        res = file_exif[0]['EXIF:Orientation']
+                    except KeyError as err:
+                        res = False
+
+                    # if file_exif.has_exif:
+                    if file_exif and res:
+                        try:
+
+                            # if file_exif.orientation in (1, 2):
+                            if file_exif[0]['EXIF:Orientation'] in (1, 2):
+                                clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
+                            # elif file_exif.orientation in (6, 7):
+                            elif file_exif[0]['EXIF:Orientation'] in (6, 7):
+                                clip = clip.with_duration(TIME)
+                                clip = clip.with_effects([vfx.Resize(width=1080)])
+                                clip = clip.with_effects([vfx.Rotate(270)])
+                                clip = clip.with_effects([vfx.FadeIn(FADEIN_TIME)])
+                                clip = clip.with_effects([vfx.FadeOut(FADEOUT_TIME)])
+                                # clip = clip.with_effects([vfx.Resize(LAMBDA_EFFECT)])
+                                clips.append(clip)
+
+                            # elif file_exif.orientation in (1, 8):
+                            elif file_exif[0]['EXIF:Orientation'] in (1, 8):
+                                clips.append(clip.with_duration(TIME).with_effects([vfx.Resize(width=1080), vfx.Rotate(90), vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
+                            # elif file_exif.orientation in (1, 4):
+                            elif file_exif[0]['EXIF:Orientation'] in (1, 4):
+                                clips.append(clip.with_duration(TIME).with_effects([vfx.Resize(width=1080), vfx.Rotate(180), vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
+                            else:
+                                clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
+                        except AttributeError:
+                            clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
+                        except ValueError:
+                            clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
+
+                    else:
+                        clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
 
         # If video
         if file.endswith(".mp4") or file.endswith(".mov"):
