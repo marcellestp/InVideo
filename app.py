@@ -7,6 +7,7 @@ import tempfile
 import shutil
 import time
 import imagesize
+import exiftool
 # import uuid
 from flask import Flask, request, render_template, redirect, send_file
 from exif import Image
@@ -66,22 +67,39 @@ def crop_image(img_height, img_width, file):
     """
     # Vertical image
     if img_height > img_width:
+        print(f"DEBUG: Inside If")
+        print(f"DEBUG: height: {img_height}")
+        print(f"DEBUG: width: {img_width}")
+        print(f"DEBUG: DIR: {app.config['UPLOAD_FOLDER']}")
+        print(f"DEBUG: file: {file}")
         width_default = 1080
         clip = ImageClip(app.config['UPLOAD_FOLDER'] + file)
         clip = clip.with_effects([vfx.Resize(height=HEIGHT_DEFAULT)])
         new_width, new_height = clip.size
         new_height_center = new_height / 2
+        print(f"DEBUG: clip.size: {clip.size}")
+        print(f"DEBUG: new_width: {new_width}")
+        print(f"DEBUG: new_height: {new_height}")
         y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
         y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
         clip = clip.with_effects([
             vfx.Crop(x1=0, y1=y1_pos, x2=width_default, y2=y2_pos)])
     else:
+        print(f"DEBUG: Inside Else")
+        print(f"DEBUG: height: {img_height}")
+        print(f"DEBUG: width: {img_width}")
+        print(f"DEBUG: DIR: {app.config['UPLOAD_FOLDER']}")
+        print(f"DEBUG: file: {file}")
+
         # Horizonte image
         width_default = 1920
         clip = ImageClip(app.config['UPLOAD_FOLDER'] + file)
         clip = clip.with_effects([vfx.Resize(width=width_default)])
         new_width, new_height = clip.size
         new_height_center = new_height / 2
+        print(f"DEBUG: clip.size: {clip.size}")
+        print(f"DEBUG: new_width: {new_width}")
+        print(f"DEBUG: new_height: {new_height}")
         y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
         y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
         clip = clip.with_effects([
@@ -147,8 +165,9 @@ def process_video():
 
                 # Check the aspect ratio, and if diff of 1.77, crop the image
                 ratio = round(img_height / img_width, 2)
-                if ratio != ratio_hd:
-                    clip = crop_image(img_height, img_width, file)
+                # if ratio != ratio_hd:
+                #     clip = crop_image(img_height, img_width, file)
+                clip = crop_image(img_height, img_width, file)
 
                 if file_exif.has_exif:
                     try:
