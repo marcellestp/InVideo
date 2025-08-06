@@ -10,16 +10,17 @@
 </head>
   <body>
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-body-tertiary">
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="background-color: #3579ab;">
         <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+            <img src="static/img/icon.png" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
+            InVideo
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
-                <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#">Home</a>
-                </li>
                 <li class="nav-item">
                 <a class="nav-link" href="#upload">Upload Files</a>
                 </li>
@@ -81,14 +82,13 @@
             <p>Finally, don't forget to download the video. I hope you enjoy it!</p>
         </div>
         <form action="" method="post" enctype="multipart/form-data">
-        <h2 id="upload" class="fs-1 p-2 mt-5 mb-5 text-center">Upload Files</h2>
         <div class="card text-center">
-        <h5 class="card-header">
-            Selection and Upload of Photos and Videos
-        </h5>
+        <h2 id="upload" class="card-header">
+            Upload Files
+        </h2>
         <div class="card-body">
             <h5 class="card-title"></h5>
-            <p class="card-text">Select the photos and/or videos you want to combine into a single video. </p>
+            <p class="card-text">Select the photos/videos you want to combine into a single video. </p>
             <p>After uploading the photos, you can delete them using the delete button, or they will be deleted after some time.</p>
             <input class="btn btn-light" type="file" name="files" multiple accept=".png, .jpg, .jpeg, .mp4, .mov">
             <p></p>
@@ -96,15 +96,16 @@
             <input class="btn btn-primary" type="submit" name="upload" value="Upload Files">
         </div>
         </div>
-
-        <h2 class="fs-1 p-2 mt-5 mb-5 text-center">Processing</h2>
+        <br> <br>
         <div class="card text-center">
-        <h5 class="card-header">
+        <h2 id="process" class="card-header">
             Video Processing
-        </h5>
+        </h2>
         <div class="card-body">
             <h5 class="card-title"></h5>
-            <p class="card-text">Combine photos and videos into a single video.</p>
+            <p class="card-text">Will combine photos/videos into a single video.</p>
+            <p>This may take some time depending on the number of photos/videos uploaded.</p>
+            <p>Please, do not reload/refresh your browser while processing.</p>
             {% if exist_file == 1 %}
                 <input class="btn btn-primary" type="submit" name="process" value="Processing">
             {% else %}
@@ -112,30 +113,31 @@
             {% endif %}
         </div>
         </div>
-
-        <h2 id="download" class="fs-1 p-2 mt-5 mb-5 text-center">Download</h2>
+        <br> <br>
         <div class="card text-center">
-        <h5 class="card-header">
+        <h2 id="download" class="card-header">
             Download Video
-        </h5>
+        </h2>
         <div class="card-body">
             <h5 class="card-title"></h5>
             <p class="card-text">The View and Download button will be activated when the video is ready.</p>
             <p>Before downloading, you can preview the video.</p>
             <p>Finally, don't forget to save the video.</p>
             {% if exist_video == 1 %}
-                <button type="button" class="btn btn-success"><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">View and Download</a></button>
+            <button type="button" class="btn btn-success"><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">View Video</a></button>
+            <button type="button" class="btn btn-success" name="download"><a href="{{ url_for('.download_files') }}" style="color: white; text-decoration: none;">Download</a></button>
             {% else %}
-                <button type="button" class="btn btn-secondary" disabled><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">View and Download</a></button>
+            <button type="button" class="btn btn-secondary" disabled><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">View Video</a></button>
+            <button type="button" class="btn btn-secondary" disabled>Download</a></button>
             {% endif %}
         </div>
         </div>
 
-        <h2 id="delete" class="fs-1 p-2 mt-5 mb-5 text-center">Delete Files</h2>
+        <br> <br>
         <div class="card text-center">
-        <h5 class="card-header">
+        <h2 id="delete" class="card-header">
             Delete Files
-        </h5>
+        </h2>
         <div class="card-body">
             <h5 class="card-title"></h5>
             <p class="card-text">If you uploaded any photos and/or videos incorrectly, you can delete them all here and upload them again.</p>
@@ -144,12 +146,11 @@
         </div>
 
         </form>
-
-        <h2 id="contact" class="fs-1 p-2 mt-5 mb-5 text-center">Contact Us</h2>
+        <br> <br>
         <div class="card text-center">
-        <h5 class="card-header">
+        <h2 id="contact" class="card-header">
             Contact
-        </h5>
+        </h2>
         <div class="card-body">
             <h5 class="card-title"></h5>
             <p class="card-text">If you have any questions or suggestions, please contact us.</p>

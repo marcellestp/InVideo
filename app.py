@@ -7,8 +7,8 @@ import tempfile
 import shutil
 import time
 import imagesize
-import uuid
-from flask import Flask, request, render_template, redirect
+# import uuid
+from flask import Flask, request, render_template, redirect, send_file
 from exif import Image
 from moviepy import vfx, ImageClip, concatenate_videoclips, VideoFileClip
 from werkzeug.utils import secure_filename
@@ -29,6 +29,7 @@ app = Flask(__name__)
 
 # Specify a directory to store uploaded files.
 UPLOAD_FOLDER = 'images/'
+# IMAGES_DIR = 'images/'
 # UPLOAD_FOLDER = f"{USER_ID}/{IMAGES_DIR}"
 # File extensions the system will accept.
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'mp4', 'mov'}
@@ -206,6 +207,17 @@ def delete_files():
                         os.remove(file_path)
                 except Exception as e:
                     print(f'Erro ao deletar {file_path}: {e}')
+
+
+@app.route('/download')
+def download_files():
+    """
+    It will download the video files in the user's Downloads directory.
+    """
+    try:
+        return send_file(PATH_VIDEO, as_attachment=True)
+    except FileNotFoundError:
+        return "File not found!", 404
 
 
 @app.route('/', methods=['GET', 'POST'])
