@@ -7,9 +7,10 @@ import tempfile
 import shutil
 import time
 import imagesize
+import exiftool
 # import uuid
 from flask import Flask, request, render_template, redirect, send_file
-from exif import Image
+# from exif import Image
 from moviepy import vfx, ImageClip, concatenate_videoclips, VideoFileClip
 from werkzeug.utils import secure_filename
 
@@ -37,6 +38,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 print(f"PATH fotos: {UPLOAD_FOLDER}")
 
 HEIGHT_DEFAULT = 1080
+WIDTH_DEFAULT = 1920
 clips = []
 FILES_PATH = os.path.join(app.config['UPLOAD_FOLDER'])
 PATH_VIDEO_TEMP = "static/out_temp.mp4"
@@ -66,7 +68,7 @@ def crop_image(img_height, img_width, file):
     """
     # Vertical image
     if img_height > img_width:
-        width_default = 1080
+        # WIDTH_DEFAULT = 1080
         clip = ImageClip(app.config['UPLOAD_FOLDER'] + file)
         clip = clip.with_effects([vfx.Resize(height=HEIGHT_DEFAULT)])
         new_width, new_height = clip.size
@@ -74,32 +76,32 @@ def crop_image(img_height, img_width, file):
         y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
         y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
         clip = clip.with_effects([
-            vfx.Crop(x1=0, y1=y1_pos, x2=width_default, y2=y2_pos)])
+            vfx.Crop(x1=0, y1=y1_pos, x2=HEIGHT_DEFAULT, y2=y2_pos)])
     else:
         # Horizonte image
-        width_default = 1920
+        # WIDTH_DEFAULT = 1920
         clip = ImageClip(app.config['UPLOAD_FOLDER'] + file)
-        clip = clip.with_effects([vfx.Resize(width=width_default)])
+        clip = clip.with_effects([vfx.Resize(width=WIDTH_DEFAULT)])
         new_width, new_height = clip.size
         new_height_center = new_height / 2
         y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
         y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
         clip = clip.with_effects([
-            vfx.Crop(x1=0, y1=y1_pos, x2=width_default, y2=y2_pos)])
+            vfx.Crop(x1=0, y1=y1_pos, x2=WIDTH_DEFAULT, y2=y2_pos)])
 
     return clip
 
 
+@app.route('/upload', methods=['POST'])
 def upload_files():
     """
     It will be responsible for uploading only files with the defined extensions.
     """
     if request.method == 'POST':
         # Get the list of files
-        if 'files' not in request.files:
-            return 'No files part'
         files = request.files.getlist('files')
-        if files == []:
+        # Checks if any files are selected
+        if not files[0].filename:
             return 'No files selected'
         elif files:
             temp_dir = tempfile.mkdtemp()
@@ -108,11 +110,15 @@ def upload_files():
                 if file and allowed_file(file.filename):
                     # secure_filename resolving file with space in name               
                     filename = secure_filename(file.filename)
+                    # Adding the lower() to avoid issues with the extension
+                    # when processing the pictures/videos
                     file.save(os.path.join(temp_dir, filename.lower()))
             for file in files:
                 # secure_filename resolving file with space in name
                 filename = secure_filename(file.filename)
-                shutil.copy(os.path.join(temp_dir, filename), UPLOAD_FOLDER)
+                # Adding the lower() to avoid issues with the extension
+                # when processing the pictures/videos
+                shutil.copy(os.path.join(temp_dir, filename.lower()), UPLOAD_FOLDER)
             shutil.rmtree(temp_dir)
             return 'Files uploaded successfully.'
         else:
@@ -125,56 +131,57 @@ def process_video():
     It will be responsible for concatenating the existing files
      in the user's directory and processing the video at the end.
     """
-    ratio_hd = round(1920 / 1080, 2)
-
     # Using sorted to sort the list of files
     # https://docs.python.org/3/howto/sorting.html
     for file in sorted(os.listdir(app.config['UPLOAD_FOLDER'])):
         if file.endswith(".jpg") or file.endswith(".jpeg") or file.endswith(".png"):
-            with open("images/" + file, "rb") as image_file:
-                file_exif = Image(image_file)
-                try:
-                    img_height = file_exif.image_height
-                    img_width = file_exif.image_width
-                except AttributeError:
-                    img_width, img_height = imagesize.get(app.config['UPLOAD_FOLDER'] + file)
-                except KeyError:
-                    img_width, img_height = imagesize.get(app.config['UPLOAD_FOLDER'] + file)
-
-                # Check the aspect ratio, and if diff of 1.77, crop the image
-                ratio = round(img_height / img_width, 2)
-                if ratio != ratio_hd:
+            # with open("images/" + file, "rb") as image_file:
+            with open("images/" + file, "rb") as fp:
+                with exiftool.ExifToolHelper() as image_file:
+                    file_exif = image_file.get_metadata(fp.name)
+                    try:
+                        img_height = file_exif[0]['File:ImageHeight']
+                        img_width = file_exif[0]['File:ImageWidth']
+                    except AttributeError:
+                        img_width, img_height = imagesize.get(app.config['UPLOAD_FOLDER'] + file)
+                    except KeyError:
+                        img_width, img_height = imagesize.get(app.config['UPLOAD_FOLDER'] + file)
+                    # Crop images to the default size of 1920x1080
                     clip = crop_image(img_height, img_width, file)
 
-                if file_exif.has_exif:
                     try:
+                        res = file_exif[0]['EXIF:Orientation']
+                    except KeyError as err:
+                        res = False
 
-                        if file_exif.orientation in (1, 2):
+                    if file_exif and res:
+                        try:
+
+                            if file_exif[0]['EXIF:Orientation'] in (1, 2):
+                                clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
+                            elif file_exif[0]['EXIF:Orientation'] in (6, 7):
+                                clip = clip.with_duration(TIME)
+                                clip = clip.with_effects([vfx.Resize(width=HEIGHT_DEFAULT)])
+                                clip = clip.with_effects([vfx.Rotate(270)])
+                                clip = clip.with_effects([vfx.FadeIn(FADEIN_TIME)])
+                                clip = clip.with_effects([vfx.FadeOut(FADEOUT_TIME)])
+                                # clip = clip.with_effects([vfx.Resize(LAMBDA_EFFECT)])
+                                clips.append(clip)
+                            elif file_exif[0]['EXIF:Orientation'] in (5, 8):
+                                clips.append(clip.with_duration(TIME).with_effects([vfx.Resize(width=HEIGHT_DEFAULT), vfx.Rotate(90), vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
+                            elif file_exif[0]['EXIF:Orientation'] in (3, 4):
+                                clips.append(clip.with_duration(TIME).with_effects([vfx.Resize(width=HEIGHT_DEFAULT), vfx.Rotate(180), vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
+                            else:
+                                clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
+                        except AttributeError:
                             clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
-                        elif file_exif.orientation in (6, 7):
-                            clip = clip.with_duration(TIME)
-                            clip = clip.with_effects([vfx.Resize(width=1080)])
-                            clip = clip.with_effects([vfx.Rotate(270)])
-                            clip = clip.with_effects([vfx.FadeIn(FADEIN_TIME)])
-                            clip = clip.with_effects([vfx.FadeOut(FADEOUT_TIME)])
-                            # clip = clip.with_effects([vfx.Resize(LAMBDA_EFFECT)])
-                            clips.append(clip)
-
-                        elif file_exif.orientation in (1, 8):
-                            clips.append(clip.with_duration(TIME).with_effects([vfx.Resize(width=1080), vfx.Rotate(90), vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
-                        elif file_exif.orientation in (1, 4):
-                            clips.append(clip.with_duration(TIME).with_effects([vfx.Resize(width=1080), vfx.Rotate(180), vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
-                        else:
+                        except ValueError:
                             clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
-                    except AttributeError:
-                        clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
-                    except ValueError:
+
+                    else:
                         clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
 
-                else:
-                    clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
-
-        # If video
+        # If file is video .mp4 or .mov 
         if file.endswith(".mp4") or file.endswith(".mov"):
             clip = VideoFileClip(app.config['UPLOAD_FOLDER'] + file)
             clip = clip.with_effects([vfx.Resize(height=HEIGHT_DEFAULT)])
@@ -207,6 +214,9 @@ def delete_files():
                         os.remove(file_path)
                 except Exception as e:
                     print(f'Erro ao deletar {file_path}: {e}')
+        # Check if there's a output video and delete                    
+        if os.path.exists(PATH_VIDEO):
+            os.remove(PATH_VIDEO)                    
 
 
 @app.route('/download')
@@ -223,7 +233,7 @@ def download_files():
 @app.route('/', methods=['GET', 'POST'])
 def upload_process_download():
     """
-    It will be responsible for identifying which option the user
+    It will be responsible for identify which option the user
      is selecting on the system's main page.
     """
     if request.method == 'POST':
@@ -254,12 +264,14 @@ def upload_process_download():
     # Check if the upload file exist. If yes, the process button will activate
     if os.listdir(FILES_PATH) != []:
         exist_file = 1
-        # return redirect("/")
     else:
         exist_file = 0
 
+    # Check how many uploaded files exist
+    file_list = len([file for file in os.scandir(FILES_PATH) if file.is_file()])
+    
     return render_template('index.html', exist_video=exist_video,
-        exist_file=exist_file)
+        exist_file=exist_file, file_list=file_list)
 
 
 if __name__ == '__main__':
