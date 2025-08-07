@@ -9,8 +9,8 @@ import time
 import imagesize
 import exiftool
 # import uuid
-from flask import Flask, request, render_template, flash, get_flashed_messages, redirect, send_file
-from exif import Image
+from flask import Flask, request, render_template, redirect, send_file
+# from exif import Image
 from moviepy import vfx, ImageClip, concatenate_videoclips, VideoFileClip
 from werkzeug.utils import secure_filename
 
