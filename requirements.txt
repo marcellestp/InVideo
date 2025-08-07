@@ -1,6 +1,6 @@
 Flask
 moviepy
-exif
 imagesize
 Werkzeug
 Jinja2
+pyexiftool
