@@ -29,7 +29,7 @@
                 </li>
                 <li class="nav-item">
                 <a class="nav-link" href="#delete">Delete Files</a>
-                </li>                
+                </li>
                 <li class="nav-item">
                 <a class="nav-link" href="#about">About</a>
                 </li>
@@ -74,7 +74,7 @@
 
     <div class="container">
         <h1 id="about" class="text-center p-2 mt-5 mb-5">Make your own videos and create unforgettable memories!</h1>
-        <div class="w-100 bg-dark-subtle text-center p-5 mb-5">
+        <div class="w-100 bg-light text-center p-5 mb-5">
             <p>Hello! If you want to combine your photos and/or videos into a single video, you've come to the right place.</p>
             <p>First, you'll need to select the photos and/or videos you want to combine into a single video. Then, you'll need to upload these selected files.</p>
             <p>After uploading, you'll be able to process the video.</p>
@@ -83,7 +83,7 @@
         </div>
         <form action="" method="post" enctype="multipart/form-data">
         <div class="card text-center">
-        <h2 id="upload" class="card-header">
+        <h2 id="upload" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
             Upload Files
         </h2>
         <div class="card-body">
@@ -93,34 +93,41 @@
             <input class="btn btn-light" type="file" name="files" multiple accept=".png, .jpg, .jpeg, .mp4, .mov">
             <p></p>
             <p class="card-text">Before processing the single video, you'll need to upload the photos and/or videos.</p>
-            <input class="btn btn-primary" type="submit" name="upload" value="Upload Files">
+            <input id="upload" class="btn btn-primary" type="submit" name="upload" value="Upload Files">
+            <p class="alert alert-primary p-2 mt-2" role="alert">{{ file_list }} file(s) were uploaded successfully!</p>
         </div>
         </div>
         <br> <br>
         <div class="card text-center">
-        <h2 id="process" class="card-header">
+        <h2 id="process" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
             Video Processing
         </h2>
         <div class="card-body">
             <h5 class="card-title"></h5>
             <p class="card-text">Will combine photos/videos into a single video.</p>
             <p>This may take some time depending on the number of photos/videos uploaded.</p>
-            <p>Please, do not reload/refresh your browser while processing.</p>
             {% if exist_file == 1 %}
-                <input class="btn btn-primary" type="submit" name="process" value="Processing">
+                <input onClick="alert('Please, do not reload/refresh your browser while processing.\nYou can now press ok.')" class="btn btn-primary" type="submit" name="process" value="Processing">
             {% else %}
                 <input class="btn btn-primary" disabled type="submit" name="process" value="Processing">
             {% endif %}
+            <div id="liveAlertPlaceholder"></div>
+            <br>
+            <div class="alert alert-danger" role="alert">
+                <h3 class="alert-heading text-decoration">Attention!</h3>
+                <h5>Please, do not reload/refresh your browser while processing.</h5>
+            </div>
+
         </div>
         </div>
         <br> <br>
         <div class="card text-center">
-        <h2 id="download" class="card-header">
+        <h2 id="download" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
             Download Video
         </h2>
         <div class="card-body">
             <h5 class="card-title"></h5>
-            <p class="card-text">The View and Download button will be activated when the video is ready.</p>
+            <p class="alert alert-success" role="alert">The View and Download button will be activated when the video is ready.</p>
             <p>Before downloading, you can preview the video.</p>
             <p>Finally, don't forget to save the video.</p>
             {% if exist_video == 1 %}
@@ -135,7 +142,7 @@
 
         <br> <br>
         <div class="card text-center">
-        <h2 id="delete" class="card-header">
+        <h2 id="delete" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
             Delete Files
         </h2>
         <div class="card-body">
@@ -148,7 +155,7 @@
         </form>
         <br> <br>
         <div class="card text-center">
-        <h2 id="contact" class="card-header">
+        <h2 id="contact" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
             Contact
         </h2>
         <div class="card-body">
@@ -161,7 +168,6 @@
     </div>
     <br>
     <br>
-
     <!-- Footer of the homepage -->
     <div class="text-center bg-dark text-white text-decoration-none">
         <p><b>By Marcelle da Silva</b></p>
