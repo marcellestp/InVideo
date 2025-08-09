@@ -200,7 +200,7 @@ def check_video_exists():
         exist_video = 0
     return exist_video
 
-
+  
 # Check if the upload file exist. If yes, the process button will activate
 def check_file_upload_exists():
     if os.listdir(FILES_PATH) != []:
@@ -210,7 +210,7 @@ def check_file_upload_exists():
     return exist_file
 
 
-# Check how many uploaded files exist
+  # Check how many uploaded files exist
 def check_quant_upload_exists():
     file_list = len([file for file in os.scandir(FILES_PATH) if file.is_file()])
     return file_list
@@ -252,3 +252,4 @@ def apology(message, code=400):
             s = s.replace(old, new)
         return s
     return render_template("apology.html", top=code, bottom=escape(message)), code
+

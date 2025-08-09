@@ -15,6 +15,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 app = Flask(__name__)
 app.secret_key = 'your_super_secret_key_here'
 
+
 # Specify a directory to store uploaded files.
 UPLOAD_FOLDER = 'images/'
 FILES_PATH = os.path.join(UPLOAD_FOLDER)
@@ -239,6 +240,7 @@ def upload_process_download():
         user_id = 0
 
     # print(user_id)
+
     return render_template('index.html', exist_video=exist_video,
         exist_file=exist_file, file_list=file_list)
 
