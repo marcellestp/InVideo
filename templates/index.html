@@ -1,180 +1,103 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>InVideo</title>
-    <link href="static/img/invideo.ico" rel="icon">
-    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous"> -->
-    <link href="static/bootstrap.min.css" rel="stylesheet">
-</head>
-  <body>
+{% extends 'layout.html' %}
 
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="background-color: #3579ab;">
-        <div class="container-fluid">
+    {% block body %}
+        
+            <div class="container">
+                <h1 class="text-center p-2 mt-5 mb-5">Make your own videos and create unforgettable memories!</h1>
+                <div class="w-100 bg-light text-center p-1 mb-5">
+                    <br>
+                    <p>Hello! If you want to combine your photos and/or videos into a single video, you've come to the right place.</p>
+                    <p>Currently, the default time for each photo is 3 seconds with a fade-in/fade-out effect and a resolution of 1920x1080.</p>
+                </div>
+                {% if session["user_id"] %}
+                    <form action="" method="post" enctype="multipart/form-data">
+                        <div class="card text-center">
+                            <h2 id="upload" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
+                                Upload Files
+                            </h2>
+                            <div class="card-body">
+                                <h5 class="card-title"></h5>
+                                <p class="card-text">Select the photos/videos you want to combine into a single video. </p>
+                                <p>After uploading the photos, you can delete them using the delete button, or they will be deleted after some time.</p>
+                                <input class="btn btn-light" type="file" name="files" multiple accept=".png, .jpg, .jpeg, .mp4, .mov">
+                                <p></p>
+                                <p class="card-text">Before processing the single video, you'll need to upload the photos and/or videos.</p>
+                                <input id="upload" class="btn btn-primary" type="submit" name="upload" value="Upload Files">
+                                <p class="alert alert-primary p-2 mt-2" role="alert">{{ file_list }} file(s) were uploaded successfully!</p>
+                            </div>
+                        </div>
+                        <br> <br>
+                        <div class="card text-center">
+                            <h2 id="process" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
+                                Video Processing
+                            </h2>
+                            <div class="card-body">
+                                <h5 class="card-title"></h5>
+                                <p class="card-text">Will combine photos/videos into a single video.</p>
+                                <p>This may take some time depending on the number of photos/videos uploaded.</p>
+                                {% if exist_file == 1 %}
+                                    <input onClick="alert('Please, do not reload/refresh your browser while processing.\nYou can now press ok.')" class="btn btn-primary" type="submit" name="process" value="Processing">
+                                {% else %}
+                                    <input class="btn btn-primary" disabled type="submit" name="process" value="Processing">
+                                {% endif %}
+                                <div id="liveAlertPlaceholder"></div>
+                                <br>
+                                <div class="alert alert-danger" role="alert">
+                                    <h3 class="alert-heading text-decoration">Attention!</h3>
+                                    <h5>Please, do not reload/refresh your browser while processing.</h5>
+                                </div>
+
+                            </div>
+                        </div>
+                        <br> <br>
+                        <div class="card text-center">
+                            <h2 id="download" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
+                                Download Video
+                            </h2>
+                            <div class="card-body">
+                                <h5 class="card-title"></h5>
+                                <p class="alert alert-success" role="alert">The View and Download button will be activated when the video is ready.</p>
+                                <p>Before downloading, you can preview the video.</p>
+                                <p>Finally, don't forget to save the video. I hope you enjoy it!</p>
+                                {% if exist_video == 1 %}
+                                <button type="button" class="btn btn-success"><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">View Video</a></button>
+                                <button type="button" class="btn btn-success" name="download"><a href="{{ url_for('.download_files') }}" style="color: white; text-decoration: none;">Download</a></button>
+                                {% else %}
+                                <button type="button" class="btn btn-secondary" disabled><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">View Video</a></button>
+                                <button type="button" class="btn btn-secondary" disabled>Download</a></button>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <br> <br>
+                        <div class="card text-center">
+                            <h2 id="delete" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
+                                Delete Files
+                            </h2>
+                            <div class="card-body">
+                                <h5 class="card-title"></h5>
+                                <p class="card-text">If you uploaded any photos and/or videos incorrectly, you can delete them all here and upload them again.</p>
+                                <input class="btn btn-danger" type="submit" name="delete" value="Delete Files">
+                            </div>
+                        </div>
+                    </form>
+                {% endif %}
+                <br> <br>
+                <div class="card text-center">
+                    <h4 id="contact" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
+                        Contact
+                    </h4>
+                    <div class="card-body">
+                        <h5 class="card-title"></h5>
+                        <p class="card-text">If you have any questions or suggestions, please contact us.</p>
+                        <button type="button" class="btn btn-link"><a href="mailto: marcellestp@gmail.com">Contact us</a></button>
+                    </div>
+                </div>
+            </div>
+        <div class="card-body">
             <a class="navbar-brand" href="/">
-            <img src="static/img/icon.png" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
-            InVideo
+                <h1 class="text-center mt-5">InVideo</h1>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                <a class="nav-link" href="#upload">Upload Files</a>
-                </li>
-                <li class="nav-item">
-                <a class="nav-link" href="#download">Download Video</a>
-                </li>
-                <li class="nav-item">
-                <a class="nav-link" href="#delete">Delete Files</a>
-                </li>
-                <li class="nav-item">
-                <a class="nav-link" href="#about">About</a>
-                </li>
-                <li class="nav-item">
-                <a class="nav-link" href="#contact">Contact us</a>
-                </li>
-            </ul>
-            </div>
         </div>
-    </nav>
-
-    <div id="carousel" class="carousel slide">
-        <div class="carousel-indicators">
-            <button type="button" data-bs-target="#carousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-            <button type="button" data-bs-target="#carousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-            <button type="button" data-bs-target="#carousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
-            <button type="button" data-bs-target="#carousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
-        </div>
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-            <img src="/static/img/sun1.jpg" class="d-block w-100" alt="Sunset1">
-            </div>
-            <div class="carousel-item">
-            <img src="/static/img/sun2.jpg" class="d-block w-100" alt="Sunset2">
-            </div>
-            <div class="carousel-item">
-            <img src="/static/img/sun3.jpg" class="d-block w-100" alt="Sunset3">
-            </div>
-            <div class="carousel-item">
-            <img src="/static/img/sun4.jpg" class="d-block w-100" alt="Sunset4">
-            </div>
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#carousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
-    </div>
-
-    <div class="container">
-        <h1 id="about" class="text-center p-2 mt-5 mb-5">Make your own videos and create unforgettable memories!</h1>
-        <div class="w-100 bg-light text-center p-5 mb-5">
-            <p>Hello! If you want to combine your photos and/or videos into a single video, you've come to the right place.</p>
-            <p>First, you'll need to select the photos and/or videos you want to combine into a single video. Then, you'll need to upload these selected files.</p>
-            <p>After uploading, you'll be able to process the video.</p>
-            <p>Currently, the default time for each photo is 3 seconds with a fade-in/fade-out effect and a resolution of 1920x1080.</p>
-            <p>Finally, don't forget to download the video. I hope you enjoy it!</p>
-        </div>
-        <form action="" method="post" enctype="multipart/form-data">
-        <div class="card text-center">
-        <h2 id="upload" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
-            Upload Files
-        </h2>
-        <div class="card-body">
-            <h5 class="card-title"></h5>
-            <p class="card-text">Select the photos/videos you want to combine into a single video. </p>
-            <p>After uploading the photos, you can delete them using the delete button, or they will be deleted after some time.</p>
-            <input class="btn btn-light" type="file" name="files" multiple accept=".png, .jpg, .jpeg, .mp4, .mov">
-            <p></p>
-            <p class="card-text">Before processing the single video, you'll need to upload the photos and/or videos.</p>
-            <input id="upload" class="btn btn-primary" type="submit" name="upload" value="Upload Files">
-            <p class="alert alert-primary p-2 mt-2" role="alert">{{ file_list }} file(s) were uploaded successfully!</p>
-        </div>
-        </div>
-        <br> <br>
-        <div class="card text-center">
-        <h2 id="process" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
-            Video Processing
-        </h2>
-        <div class="card-body">
-            <h5 class="card-title"></h5>
-            <p class="card-text">Will combine photos/videos into a single video.</p>
-            <p>This may take some time depending on the number of photos/videos uploaded.</p>
-            {% if exist_file == 1 %}
-                <input onClick="alert('Please, do not reload/refresh your browser while processing.\nYou can now press ok.')" class="btn btn-primary" type="submit" name="process" value="Processing">
-            {% else %}
-                <input class="btn btn-primary" disabled type="submit" name="process" value="Processing">
-            {% endif %}
-            <div id="liveAlertPlaceholder"></div>
-            <br>
-            <div class="alert alert-danger" role="alert">
-                <h3 class="alert-heading text-decoration">Attention!</h3>
-                <h5>Please, do not reload/refresh your browser while processing.</h5>
-            </div>
-
-        </div>
-        </div>
-        <br> <br>
-        <div class="card text-center">
-        <h2 id="download" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
-            Download Video
-        </h2>
-        <div class="card-body">
-            <h5 class="card-title"></h5>
-            <p class="alert alert-success" role="alert">The View and Download button will be activated when the video is ready.</p>
-            <p>Before downloading, you can preview the video.</p>
-            <p>Finally, don't forget to save the video.</p>
-            {% if exist_video == 1 %}
-            <button type="button" class="btn btn-success"><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">View Video</a></button>
-            <button type="button" class="btn btn-success" name="download"><a href="{{ url_for('.download_files') }}" style="color: white; text-decoration: none;">Download</a></button>
-            {% else %}
-            <button type="button" class="btn btn-secondary" disabled><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">View Video</a></button>
-            <button type="button" class="btn btn-secondary" disabled>Download</a></button>
-            {% endif %}
-        </div>
-        </div>
-
-        <br> <br>
-        <div class="card text-center">
-        <h2 id="delete" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
-            Delete Files
-        </h2>
-        <div class="card-body">
-            <h5 class="card-title"></h5>
-            <p class="card-text">If you uploaded any photos and/or videos incorrectly, you can delete them all here and upload them again.</p>
-            <input class="btn btn-danger" type="submit" name="delete" value="Delete Files">
-        </div>
-        </div>
-
-        </form>
-        <br> <br>
-        <div class="card text-center">
-        <h2 id="contact" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
-            Contact
-        </h2>
-        <div class="card-body">
-            <h5 class="card-title"></h5>
-            <p class="card-text">If you have any questions or suggestions, please contact us.</p>
-            <button type="button" class="btn btn-link"><a href="mailto: marcellestp@gmail.com">Contact us</a></button>
-        </div>
-        </div>
-
-    </div>
-    <br>
-    <br>
-    <!-- Footer of the homepage -->
-    <div class="text-center bg-dark text-white text-decoration-none">
-        <p><b>By Marcelle da Silva</b></p>
-    </div>
-
-    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script> -->
-        <script src="static/bootstrap.bundle.min.js"></script>
-
-</body>
-</html>
+        
+    {% endblock %}

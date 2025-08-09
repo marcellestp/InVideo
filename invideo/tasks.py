@@ -3,7 +3,8 @@ import tempfile
 import shutil
 import imagesize
 import exiftool
-from flask import request
+from flask import Flask, request, render_template, redirect, send_file, session
+from functools import wraps
 from moviepy import vfx, ImageClip, concatenate_videoclips, VideoFileClip
 from werkzeug.utils import secure_filename
 
@@ -199,6 +200,7 @@ def check_video_exists():
         exist_video = 0
     return exist_video
 
+  
 # Check if the upload file exist. If yes, the process button will activate
 def check_file_upload_exists():
     if os.listdir(FILES_PATH) != []:
@@ -207,7 +209,47 @@ def check_file_upload_exists():
         exist_file = 0
     return exist_file
 
-# Check how many uploaded files exist
+
+  # Check how many uploaded files exist
 def check_quant_upload_exists():
     file_list = len([file for file in os.scandir(FILES_PATH) if file.is_file()])
     return file_list
+
+
+def login_required(f):
+    """
+    Decorate routes to require login.
+
+    https://flask.palletsprojects.com/en/latest/patterns/viewdecorators/
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get("user_id") is None:
+            return redirect("/login")
+        return f(*args, **kwargs)
+
+    return decorated_function 
+
+
+def apology(message, code=400):
+    """Render message as an apology to user."""
+    def escape(s):
+        """
+        Escape special characters.
+
+        https://github.com/jacebrowning/memegen#special-characters
+        """
+        for old, new in [
+            ("-", "--"),
+            (" ", "-"),
+            ("_", "__"),
+            ("?", "~q"),
+            ("%", "~p"),
+            ("#", "~h"),
+            ("/", "~s"),
+            ('"', "''"),
+        ]:
+            s = s.replace(old, new)
+        return s
+    return render_template("apology.html", top=code, bottom=escape(message)), code
+

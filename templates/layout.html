@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>InVideo</title>
+        <link href="static/img/invideo.ico" rel="icon">
+        <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous"> -->
+        <link href="static/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body>
+
+        <nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="background-color: #3579ab;">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">
+                <img src="static/img/icon.png" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
+                    InVideo
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    {% if session["user_id"] %}
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                            <a class="nav-link" href="/#upload">Upload Files</a>
+                            </li>
+                            <li class="nav-item">
+                            <a class="nav-link" href="/#process">Process Files</a>
+                            </li>                    
+                            <li class="nav-item">
+                            <a class="nav-link" href="/#download">Download Video</a>
+                            </li>
+                            <li class="nav-item">
+                            <a class="nav-link" href="/#delete">Delete Files</a>
+                            </li>
+                            <li class="nav-item">
+                            <a class="nav-link" href="/about">About</a>
+                            </li>
+                            <li class="nav-item">
+                            <a class="nav-link" href="/#contact">Contact us</a>
+                            </li>
+                        </ul>
+                        <ul class="navbar-nav ms-auto mt-2">
+                            <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
+                        </ul>
+                    {% else %}    
+                        <ul class="navbar-nav ms-auto mt-2">
+                            <li class="nav-item"><a class="nav-link" href="/register">Register</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/login">Log In</a></li>
+                        </ul>
+                    {% endif %}                              
+                </div>
+            </div>
+        </nav>
+        
+        <div id="carousel" class="carousel slide">
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#carousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#carousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#carousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                <button type="button" data-bs-target="#carousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+            </div>
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                <img src="/static/img/sun1.jpg" class="d-block w-100" alt="Sunset1">
+                </div>
+                <div class="carousel-item">
+                <img src="/static/img/sun2.jpg" class="d-block w-100" alt="Sunset2">
+                </div>
+                <div class="carousel-item">
+                <img src="/static/img/sun3.jpg" class="d-block w-100" alt="Sunset3">
+                </div>
+                <div class="carousel-item">
+                <img src="/static/img/sun4.jpg" class="d-block w-100" alt="Sunset4">
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+
+        {% block body%}{% endblock %}
+
+        <br><br>
+        <!-- Footer of the homepage -->
+        <div class="text-center bg-dark text-white text-decoration-none">
+            <p><b>By Marcelle da Silva</b></p>
+        </div>
+
+        <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script> -->
+        <script src="static/bootstrap.bundle.min.js"></script>
+
+    </body>
+</html>
