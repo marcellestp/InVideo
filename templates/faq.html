@@ -1,0 +1,116 @@
+{% extends 'layout.html' %}
+
+    {% block body %}
+
+        <div class="accordion" id="accordionExample">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    Where are my pictures and videos hosted?
+                </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    Those pictures and videos will be uploaded to a container, during this rendering process. Once you finish it, you can click on "Delete" button, which will remove the pictures, videos, including the final one. So, don't forget to download your video BEFORE clicking on the "Delete" button.
+                </div>
+                </div>
+            </div>
+            
+
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne1" aria-expanded="true" aria-controls="collapseOne1">
+                    Will you be using my pictures and videos for anything else?
+                </button>
+                </h2>
+                <div id="collapseOne1" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    No. The main idea of this project is to combine pictures and videos in a final project, that you can share with your family and friends. With that said, we have no interest in your pictures and/or videos, and no, we will not be using them anywhere else.
+                </div>
+                </div>
+            </div>
+
+
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne2" aria-expanded="true" aria-controls="collapseOne2">
+                    I'm facing issues using this application. What should I do?
+                </button>
+                </h2>
+                <div id="collapseOne2" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    Please, send an email to "marcellestp@gmail.com" informing the issue you are facing. If you are able to send screenshots, it will be great.
+                </div>
+                </div>
+            </div>
+
+
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne3" aria-expanded="true" aria-controls="collapseOne3">
+                    How can I know how many files I uploaded already?
+                </button>
+                </h2>
+                <div id="collapseOne3" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    In the main page, under "Upload Files" section, you will see a text like "10 file(s) were uploaded successfully!". That means that "10" files were uploaded, and it could be pictures and/or videos.
+                </div>
+                </div>
+            </div>
+
+
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne4" aria-expanded="true" aria-controls="collapseOne4">
+                    The button "View Video" and "Download" are greyed out. Am I doing something wrong?
+                </button>
+                </h2>
+                <div id="collapseOne4" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    No, Never! :-), they are greyed out, probably because you didn't process the video yet, or maybe because your process is still running.
+                    <br>
+                    If you didn't click in the "Process Video" button, go for it. However, if you pressed the button already, just wait, and eventually, the buttons will get enabled.
+                </div>
+                </div>
+            </div>
+
+
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne6" aria-expanded="true" aria-controls="collapseOne6">
+                    After clicking on "Process Video", I saw a message saying to not reload the page. Could I reload the page?
+                </button>
+                </h2>
+                <div id="collapseOne6" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    No. :-), as recommended, you can wait for the process to finish, and then you will be redirected to the Vide/Download area.
+                    <br>
+                    If you press the button "Process Video" multiple times, this can cause your final video to be currupt.
+                </div>
+                </div>
+            </div>
+
+
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne5" aria-expanded="true" aria-controls="collapseOne5">
+                    If I have any problem and/or question, how should I proceed?
+                </button>
+                </h2>
+                <div id="collapseOne5" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    In case of issues, if possible to take a screenshot, or send to us the picture/video that is causing the problem, this will help us with the troubleshooting and application improvement.
+                    <br>
+                    If you have questions/ideas/feedback, don't hesitate, just send me a message via email, marcellestp@gmail.com
+                </div>
+                </div>
+            </div>
+
+
+
+
+
+            
+        </div>    
+
+    {% endblock %}
