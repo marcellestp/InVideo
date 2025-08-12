@@ -1,36 +1,15 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>InVideo</title>
-    <link href="static/img/invideo.ico" rel="icon">
-    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous"> -->
-    <link href="static/bootstrap.min.css" rel="stylesheet">
-</head>
-    <body>
-        <nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="background-color: #3579ab;">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="/">
-                <img src="static/img/icon.png" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
-                    InVideo
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </div>
-        </nav>
+{% extends 'layout.html' %}
+
+    {% block body %}
         <form action="/register" method="post">
             <div class="card text-center">
-                <h4 class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
-                    Register
-                </h4>
                 <div class="card-body">
                     <div class="mb-3">
                         <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="username" placeholder="Username" type="text">
                     </div>
                     <div class="mb-3">
                         <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="email" placeholder="E-mail" type="email">
-                    </div>                    
+                    </div>
                     <div class="mb-3">
                         <input class="form-control mx-auto w-auto" name="password" placeholder="Password" type="password">
                     </div>
@@ -41,6 +20,5 @@
                 </div>
             </div>
         </form>
-        
-    </body>
-</html>
+
+    {% endblock %}

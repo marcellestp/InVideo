@@ -1,15 +1,20 @@
 {% extends 'layout.html' %}
 
     {% block body %}
-        
+
             <div class="container">
                 <h1 class="text-center p-2 mt-5 mb-5">Make your own videos and create unforgettable memories!</h1>
                 <div class="w-100 bg-light text-center p-1 mb-5">
                     <br>
-                    <p>Hello! If you want to combine your photos and/or videos into a single video, you've come to the right place.</p>
+                    {% if session["user_id"] %}
+                    <p>Hello {{ session['username'] }}! If you want to combine your photos and/or videos into a single video, you've come to the right place.</p>
                     <p>Currently, the default time for each photo is 3 seconds with a fade-in/fade-out effect and a resolution of 1920x1080.</p>
                 </div>
-                {% if session["user_id"] %}
+                    {% else %}
+                    <p>Hello! If you want to combine your photos and/or videos into a single video, you've come to the right place.</p>
+                    <p>Currently, the default time for each photo is 3 seconds with a fade-in/fade-out effect and a resolution of 1920x1080.</p>
+                    {% endif %}
+                    {% if session["user_id"] %}
                     <form action="" method="post" enctype="multipart/form-data">
                         <div class="card text-center">
                             <h2 id="upload" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
@@ -18,10 +23,10 @@
                             <div class="card-body">
                                 <h5 class="card-title"></h5>
                                 <p class="card-text">Select the photos/videos you want to combine into a single video. </p>
-                                <p>After uploading the photos, you can delete them using the delete button, or they will be deleted after some time.</p>
+                                <p>After processing you can delete uploaded files using the delete button, or they will be deleted after some time.</p>
                                 <input class="btn btn-light" type="file" name="files" multiple accept=".png, .jpg, .jpeg, .mp4, .mov">
                                 <p></p>
-                                <p class="card-text">Before processing the single video, you'll need to upload the photos and/or videos.</p>
+                                <p class="card-text">Before processing the single video, you'll need to upload the files.</p>
                                 <input id="upload" class="btn btn-primary" type="submit" name="upload" value="Upload Files">
                                 <p class="alert alert-primary p-2 mt-2" role="alert">{{ file_list }} file(s) were uploaded successfully!</p>
                             </div>
@@ -29,16 +34,17 @@
                         <br> <br>
                         <div class="card text-center">
                             <h2 id="process" class="card-header text-white text-decoration-none" style="background-color: #3e8fc4;">
-                                Video Processing
+                                Process Video
                             </h2>
                             <div class="card-body">
                                 <h5 class="card-title"></h5>
                                 <p class="card-text">Will combine photos/videos into a single video.</p>
+                                <p>After uploading the files you can process the video using the process video button. </p>
                                 <p>This may take some time depending on the number of photos/videos uploaded.</p>
                                 {% if exist_file == 1 %}
-                                    <input onClick="alert('Please, do not reload/refresh your browser while processing.\nYou can now press ok.')" class="btn btn-primary" type="submit" name="process" value="Processing">
+                                    <input onClick="alert('Please, do not reload/refresh your browser while processing.\nYou can now press ok.')" class="btn btn-primary" type="submit" name="process" value="Process Video">
                                 {% else %}
-                                    <input class="btn btn-primary" disabled type="submit" name="process" value="Processing">
+                                    <input class="btn btn-primary" disabled type="submit" name="process" value="Process Video">
                                 {% endif %}
                                 <div id="liveAlertPlaceholder"></div>
                                 <br>
@@ -56,11 +62,11 @@
                             </h2>
                             <div class="card-body">
                                 <h5 class="card-title"></h5>
-                                <p class="alert alert-success" role="alert">The View and Download button will be activated when the video is ready.</p>
+                                <p class="alert alert-success" role="alert">The View and Download buttons will be activated when the video is ready.</p>
                                 <p>Before downloading, you can preview the video.</p>
                                 <p>Finally, don't forget to save the video. I hope you enjoy it!</p>
                                 {% if exist_video == 1 %}
-                                <button type="button" class="btn btn-success"><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">View Video</a></button>
+                                <button type="button" class="btn btn-success"><a href="static/{{ session['user_id'] }}_output.mp4" target="_blank" class="text-white text-decoration-none">View Video</a></button>
                                 <button type="button" class="btn btn-success" name="download"><a href="{{ url_for('.download_files') }}" style="color: white; text-decoration: none;">Download</a></button>
                                 {% else %}
                                 <button type="button" class="btn btn-secondary" disabled><a href="static/output.mp4" target="_blank" class="text-white text-decoration-none">View Video</a></button>
@@ -77,6 +83,7 @@
                             <div class="card-body">
                                 <h5 class="card-title"></h5>
                                 <p class="card-text">If you uploaded any photos and/or videos incorrectly, you can delete them all here and upload them again.</p>
+                                <p>This action will also delete the video processed by the application.</p>
                                 <input class="btn btn-danger" type="submit" name="delete" value="Delete Files">
                             </div>
                         </div>
@@ -99,5 +106,5 @@
                 <h1 class="text-center mt-5">InVideo</h1>
             </a>
         </div>
-        
+
     {% endblock %}
