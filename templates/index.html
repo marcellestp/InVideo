@@ -9,10 +9,14 @@
                     {% if session["user_id"] %}
                     <p>Hello {{ session['username'] }}! If you want to combine your photos and/or videos into a single video, you've come to the right place.</p>
                     <p>Currently, the default time for each photo is 3 seconds with a fade-in/fade-out effect and a resolution of 1920x1080.</p>
+                    <br>
+                    For general questions, please, check our <a href="/faq">FAQ</a>
                 </div>
                     {% else %}
                     <p>Hello! If you want to combine your photos and/or videos into a single video, you've come to the right place.</p>
                     <p>Currently, the default time for each photo is 3 seconds with a fade-in/fade-out effect and a resolution of 1920x1080.</p>
+                    <br>
+                    For general questions, please, check our <a href="/faq">FAQ</a>
                     {% endif %}
                     {% if session["user_id"] %}
                     <form action="" method="post" enctype="multipart/form-data">
