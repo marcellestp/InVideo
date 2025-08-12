@@ -18,7 +18,6 @@ app.secret_key = 'your_super_secret_key_here'
 
 # Specify a directory to store uploaded files.
 UPLOAD_FOLDER = 'images/'
-# UPLOAD_FOLDER = ''
 BASE_PATH = 'images/'
 FILES_PATH = os.path.join(UPLOAD_FOLDER)
 PATH_VIDEO_TEMP = "static/out_temp.mp4"
@@ -247,7 +246,6 @@ def upload_process_download():
         print(f"Error checking session_id: {err}")
         return render_template('index.html')
         
-
 
 @app.route("/about", methods=["GET", "POST"])
 # @login_required
