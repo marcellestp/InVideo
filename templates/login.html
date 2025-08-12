@@ -1,11 +1,10 @@
 {% extends 'layout.html' %}
 
     {% block body %}
-
         <form action="/login" method="post">
             <div class="card text-center">
                 <div class="card-body">
-                    <div class="mb-3 p-1 mt-5">
+                    <div class="mb-3">
                         <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="username" placeholder="Username" type="text">
                     </div>
                     <div class="mb-3">
@@ -15,14 +14,15 @@
                         <button class="btn btn-primary" type="submit">Log In</button>
                     </div>
                 </div>
-            
-        </form> 
+
+        </form>
         <form action="/changepass" method="get">
             <div class="card-body">
+                <p>Forgot your password?</p>
                 <button class="btn btn-primary" type="submit">Change Password</button>
             </div>
         </form>
         </div>
-            
-               
+
+
     {% endblock %}

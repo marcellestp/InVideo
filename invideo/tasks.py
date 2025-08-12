@@ -11,24 +11,83 @@ from werkzeug.utils import secure_filename
 HEIGHT_DEFAULT = 1080
 WIDTH_DEFAULT = 1920
 clips = []
-UPLOAD_FOLDER = 'images/'
 TIME = 3
 FADEIN_TIME = 0.2
 FADEOUT_TIME = 0.2
-PATH_VIDEO_TEMP = "static/out_temp.mp4"
-PATH_VIDEO = "static/output.mp4"
-FILES_PATH = os.path.join(UPLOAD_FOLDER)
+
+# UPLOAD_FOLDER = 'images/'
+# PATH_VIDEO_TEMP = "static/out_temp.mp4"
+# PATH_VIDEO = "static/output.mp4"
+BASE_PATH = 'images/'
+STATIC = "static/"
+# PATH_VIDEO_TEMP = "static/out_temp.mp4"
+TEMP_FILENAME = "_out_temp.mp4"
+FINAL_FILENAME = "_output.mp4"
+# PATH_VIDEO_TEMP = "static/out_temp.mp4"
+# PATH_VIDEO = "static/output.mp4"
+# UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'mp4', 'mov'}
 
-# Create the uploads directory if it doesn't exist
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+def base_dir(user_id):
+    try:
+        if user_id:
+            # print(f"session['user_id']: {session['user_id']}")
+            # Create session user folder
+            FOLDER_USER = str(user_id) + "/"
+            print(f"FOLDER_USER: {FOLDER_USER}")
+            print(f"BASE_PATH: {BASE_PATH}")
 
+            UPLOAD_FOLDER = os.path.join(BASE_PATH, FOLDER_USER)
+            print(UPLOAD_FOLDER)
+            PATH_VIDEO = STATIC + str(user_id) + FINAL_FILENAME
+
+            # Create the uploads directory if it doesn't exist
+            if not os.path.exists(UPLOAD_FOLDER):
+                os.makedirs(UPLOAD_FOLDER)
+        else:
+            UPLOAD_FOLDER = 'images/'
+            # UPLOAD_FOLDER = UPLOAD_FOLDER
+
+    except KeyError as err:
+        print(f"Keyerror: {err}")
+        # return None, None
+
+
+    try:
+        if session['user_id']:
+            print(f"session['user_id']: {session['user_id']}")
+            # Create session user folder
+            FOLDER_USER = str(session['user_id']) + "/"
+            print(f"FOLDER_USER: {FOLDER_USER}")
+            print(f"BASE_PATH: {BASE_PATH}")
+            
+            # print(UPLOAD_FOLDER)
+            UPLOAD_FOLDER = os.path.join(BASE_PATH, FOLDER_USER)
+            print(UPLOAD_FOLDER)
+            PATH_VIDEO = STATIC + str(session['user_id']) + FINAL_FILENAME
+            # PATH_VIDEO = os.path.join(STATIC , str(session['user_id']), FINAL_FILENAME)
+            print(f"PATH_VIDEO: {PATH_VIDEO}")
+
+            # Create the uploads directory if it doesn't exist
+            if not os.path.exists(UPLOAD_FOLDER):
+                os.makedirs(UPLOAD_FOLDER)
+        else:
+            UPLOAD_FOLDER = 'images/'
+            # UPLOAD_FOLDER = UPLOAD_FOLDER    
+
+    except RuntimeError as err:
+        print(f"Error no try: {err}")
+    except KeyError as err:
+        print(f"Error no try - keyerror: {err}")
+        return None, None
+
+
+    return UPLOAD_FOLDER, PATH_VIDEO
 
 def allowed_file(filename):
     """
     It will ensure that only the defined extensions are accepted when uploading files.
-    """ 
+    """
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -38,6 +97,8 @@ def upload_files():
     It will be responsible for uploading only files with the defined extensions.
     """
     if request.method == 'POST':
+        # print(session['user_id'])
+        UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id = None)
         # Get the list of files
         files = request.files.getlist('files')
         # Checks if any files are selected
@@ -48,7 +109,7 @@ def upload_files():
             # Save each file to the uploads directory
             for file in files:
                 if file and allowed_file(file.filename):
-                    # secure_filename resolving file with space in name               
+                    # secure_filename resolving file with space in name
                     filename = secure_filename(file.filename)
                     # Adding the lower() to avoid issues with the extension
                     # when processing the pictures/videos
@@ -67,11 +128,13 @@ def upload_files():
 
 
 # Make crop on images greater then 1920 x 1080
-def crop_image(img_height, img_width, file):
+def crop_image(user_id, img_height, img_width, file):
     """
     It will define default height and width according to the image's position
      (vertical or horizontal).
     """
+    UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id)
+    # print(f"UPLOAD_FOLDER inside crop_image: {UPLOAD_FOLDER}")
     # Vertical image
     if img_height > img_width:
         # WIDTH_DEFAULT = 1080
@@ -99,17 +162,23 @@ def crop_image(img_height, img_width, file):
     return clip
 
 
-def process_video():
+def process_video(user_id):
     """
     It will be responsible for concatenating the existing files
      in the user's directory and processing the video at the end.
     """
+    # print(f"AUDIT: Process_video")
+    # print(f"session {session['user_id']}")
+    # print(f"session: {user_id}")
+    UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id)
+    # print(f"UPLOAD_FOLDER under process: {UPLOAD_FOLDER}")
     # Using sorted to sort the list of files
     # https://docs.python.org/3/howto/sorting.html
     for file in sorted(os.listdir(UPLOAD_FOLDER)):
         if file.endswith(".jpg") or file.endswith(".jpeg") or file.endswith(".png"):
             # with open("images/" + file, "rb") as image_file:
-            with open("images/" + file, "rb") as fp:
+            with open(UPLOAD_FOLDER + file, "rb") as fp:
+            # with open("images/" + file, "rb") as fp:
                 with exiftool.ExifToolHelper() as image_file:
                     file_exif = image_file.get_metadata(fp.name)
                     try:
@@ -120,7 +189,7 @@ def process_video():
                     except KeyError:
                         img_width, img_height = imagesize.get(UPLOAD_FOLDER + file)
                     # Crop images to the default size of 1920x1080
-                    clip = crop_image(img_height, img_width, file)
+                    clip = crop_image(user_id, img_height, img_width, file)
 
                     try:
                         res = file_exif[0]['EXIF:Orientation']
@@ -154,7 +223,7 @@ def process_video():
                     else:
                         clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
 
-        # If file is video .mp4 or .mov 
+        # If file is video .mp4 or .mov
         if file.endswith(".mp4") or file.endswith(".mov"):
             clip = VideoFileClip(UPLOAD_FOLDER + file)
             clip = clip.with_effects([vfx.Resize(height=HEIGHT_DEFAULT)])
@@ -163,8 +232,16 @@ def process_video():
             clips.append(clip)
 
     video_clip = concatenate_videoclips(clips, method='compose')
+    # video_clip.write_videofile(PATH_VIDEO_TEMP, fps=24)
+    PATH_VIDEO_TEMP = STATIC + str(user_id) + TEMP_FILENAME
+    # PATH_VIDEO = STATIC + str(user_id) + FINAL_FILENAME
     video_clip.write_videofile(PATH_VIDEO_TEMP, fps=24)
+    # FINAL_FILENAME
+    # PATH_VIDEO = "static/output.mp4"
+
     if os.path.exists(PATH_VIDEO):
+        # os.remove(PATH_VIDEO)
+        # os.rename(PATH_VIDEO_TEMP, PATH_VIDEO)
         os.remove(PATH_VIDEO)
         os.rename(PATH_VIDEO_TEMP, PATH_VIDEO)
     else:
@@ -178,32 +255,40 @@ def delete_files():
     It will delete the existing files in the user's directory.
     """
     if request.method == 'POST':
+        UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id = None)
         # Check if there's a video with the same name in the static directory
-        if os.path.exists(FILES_PATH):
-            for filename in os.listdir(FILES_PATH):
-                file_path = os.path.join(FILES_PATH, filename)
+        if os.path.exists(UPLOAD_FOLDER):
+            for filename in os.listdir(UPLOAD_FOLDER):
+                file_path = os.path.join(UPLOAD_FOLDER, filename)
                 try:
                     if os.path.isfile(file_path) or os.path.islink(file_path):
                         os.remove(file_path)
                 except Exception as e:
                     print(f'Erro ao deletar {file_path}: {e}')
-        # Check if there's a output video and delete                    
+        # Check if there's a output video and delete
         if os.path.exists(PATH_VIDEO):
-            os.remove(PATH_VIDEO)                    
+            os.remove(PATH_VIDEO)
 
 
 # Check if video file exist. If yes, the download button will activate
 def check_video_exists():
+    # print(f"AUDIT check_video_exists")
+    # print(f"session inside check_video_exists: {session['user_id']}")
+    # PATH_VIDEO = STATIC + str(session['user_id']) + FINAL_FILENAME
+    
+    UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id = None)
+    # print(f"PATH_VIDEO: {PATH_VIDEO}")
     if os.path.exists(PATH_VIDEO):
         exist_video = 1
     else:
         exist_video = 0
     return exist_video
+    # return None
 
-  
 # Check if the upload file exist. If yes, the process button will activate
 def check_file_upload_exists():
-    if os.listdir(FILES_PATH) != []:
+    UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id = None)
+    if os.listdir(UPLOAD_FOLDER) != []:
         exist_file = 1
     else:
         exist_file = 0
@@ -212,7 +297,8 @@ def check_file_upload_exists():
 
   # Check how many uploaded files exist
 def check_quant_upload_exists():
-    file_list = len([file for file in os.scandir(FILES_PATH) if file.is_file()])
+    UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id = None)
+    file_list = len([file for file in os.scandir(UPLOAD_FOLDER) if file.is_file()])
     return file_list
 
 
@@ -228,7 +314,7 @@ def login_required(f):
             return redirect("/login")
         return f(*args, **kwargs)
 
-    return decorated_function 
+    return decorated_function
 
 
 def apology(message, code=400):
@@ -252,4 +338,3 @@ def apology(message, code=400):
             s = s.replace(old, new)
         return s
     return render_template("apology.html", top=code, bottom=escape(message)), code
-

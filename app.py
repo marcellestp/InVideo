@@ -8,7 +8,7 @@ import time
 from datetime import datetime
 from flask import Flask, request, render_template, redirect, send_file, session
 from invideo.tasks import *
-# from flask_session import Session
+from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -18,6 +18,7 @@ app.secret_key = 'your_super_secret_key_here'
 
 # Specify a directory to store uploaded files.
 UPLOAD_FOLDER = 'images/'
+BASE_PATH = 'images/'
 FILES_PATH = os.path.join(UPLOAD_FOLDER)
 PATH_VIDEO_TEMP = "static/out_temp.mp4"
 PATH_VIDEO = "static/output.mp4"
@@ -25,9 +26,8 @@ PATH_VIDEO = "static/output.mp4"
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
-# Session(app)
+Session(app)
 
-user_id = 0
 database_file = "invideo.db"
 connection = sqlite3.connect(database_file, check_same_thread=False)
 db = connection.cursor()
@@ -51,16 +51,13 @@ def login():
 
         user_name = request.form.get("username").lower()
 
-        # Query database for username
-        # db.execute(
-        #     "SELECT * FROM users WHERE username = ?", (request.form.get("username"),)
-        # )
         db.execute(
         "SELECT * FROM users WHERE username = ? OR email = ?",
             (user_name, user_name)
         )
         rows = db.fetchall()
         print(rows)
+        session['username'] = request.form.get('username')
 
         # Ensure username exist and password is correct
         for row in rows:
@@ -72,13 +69,12 @@ def login():
             else:
                 return apology("invalid username and/or password", 400)
 
-
         # Redirect user to home page
         return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
-        return render_template("login.html")    
+        return render_template("login.html")
 
 
 @app.route("/logout")
@@ -104,10 +100,10 @@ def register():
         # Ensure username was submitted
         if not request.form.get("username"):
             return apology("must provide username", 400)
-        
+
         # Ensure email was submitted
         if not request.form.get("email"):
-            return apology("must provide email", 400)        
+            return apology("must provide email", 400)
 
         # Ensure password was submitted
         elif not request.form.get("password"):
@@ -141,9 +137,9 @@ def register():
         connection.commit()
         login()
 
-        # Redirect user to home page
+        # Redirect user to main page
         return redirect("/")
-    
+
 
 @app.route("/changepass", methods=["GET", "POST"])
 # @login_required
@@ -153,7 +149,7 @@ def changepass():
     # User reached route via POST (as by submitting a form via POST)
     print("here")
     if request.method == "GET":
-        
+
         return render_template("changepass.html")
 
     if request.method == "POST":
@@ -178,8 +174,8 @@ def changepass():
         # print(rows)
         user_id = rows[0][0]
 
-        # Ensure user exist and password is correct
-        if rows:                        
+        # Ensure user exists and password is correct
+        if rows:
             # Query update password into database for username
             db.execute(
                 "UPDATE users SET hash = ? WHERE id = ?", (generate_password_hash(
@@ -190,14 +186,16 @@ def changepass():
 
         # Redirect user to login
         return redirect("/")
-    
-    
+
+
 @app.route('/download')
 @login_required
 def download_files():
     """
     It will download the video files in the user's Downloads directory.
     """
+    PATH_VIDEO = STATIC + str(session['user_id']) + FINAL_FILENAME
+    # print(PATH_VIDEO)
     try:
         return send_file(PATH_VIDEO, as_attachment=True)
     except FileNotFoundError:
@@ -221,29 +219,33 @@ def upload_process_download():
             return redirect("/")
         if request.form.get('process'):
             # Call the process function
-            process = multiprocessing.Process(target=process_video)
+            print(f"session before processing call: {session['user_id']}")
+            process = multiprocessing.Process(target=process_video, kwargs={"user_id": session['user_id']})
             process.start() # Begin the process execution
             process.join()  # Wait for the process to finish
-            return redirect('/')
+            # print(f"fim do process: {session['user_id']}")
+            return redirect('/#download')
         if request.form.get('delete'):
             # Call the delete function
             delete_files()
             return redirect('/')
 
-    exist_video = check_video_exists()
-    exist_file = check_file_upload_exists()
-    file_list = check_quant_upload_exists()
+    # print(f"session before check exist video: {session['user_id']}")
+    try:
+        if session['user_id']:
+            exist_video = check_video_exists()
+            exist_file = check_file_upload_exists()
+            file_list = check_quant_upload_exists()
 
-    if 'user_id' in session:
-        user_id = session['user_id']
-    else:
-        user_id = 0
+            return render_template('index.html', exist_video=exist_video,
+                exist_file=exist_file, file_list=file_list)
+        else:
+            return render_template('index.html')
 
-    # print(user_id)
-
-    return render_template('index.html', exist_video=exist_video,
-        exist_file=exist_file, file_list=file_list)
-
+    except KeyError as err:
+        print(f"Error checking session_id: {err}")
+        return render_template('index.html')
+        
 
 @app.route("/about", methods=["GET", "POST"])
 # @login_required
@@ -252,7 +254,7 @@ def about():
 
     if request.method == "GET":
         return render_template("about.html")
-    
+
 
 if __name__ == '__main__':
     app.run(debug=True)

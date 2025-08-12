@@ -27,7 +27,7 @@
                             </li>
                             <li class="nav-item">
                             <a class="nav-link" href="/#process">Process Files</a>
-                            </li>                    
+                            </li>
                             <li class="nav-item">
                             <a class="nav-link" href="/#download">Download Video</a>
                             </li>
@@ -42,18 +42,19 @@
                             </li>
                         </ul>
                         <ul class="navbar-nav ms-auto mt-2">
+                            <li class="nav-item"><a class="nav-link">Hello {{ session['username'] }}!</a></li>
                             <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
                         </ul>
-                    {% else %}    
+                    {% else %}
                         <ul class="navbar-nav ms-auto mt-2">
                             <li class="nav-item"><a class="nav-link" href="/register">Register</a></li>
                             <li class="nav-item"><a class="nav-link" href="/login">Log In</a></li>
                         </ul>
-                    {% endif %}                              
+                    {% endif %}
                 </div>
             </div>
         </nav>
-        
+
         <div id="carousel" class="carousel slide">
             <div class="carousel-indicators">
                 <button type="button" data-bs-target="#carousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
