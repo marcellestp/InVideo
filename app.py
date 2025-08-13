@@ -255,9 +255,8 @@ def upload_process_download():
 
     except KeyError as err:
         print(f"Error checking session_id: {err}")
-        # return render_template('index.html')
-        return apology("", )
-        
+        return render_template('index.html')
+
 
 @app.route("/about", methods=["GET", "POST"])
 # @login_required
