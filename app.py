@@ -32,6 +32,8 @@ database_file = "invideo.db"
 connection = sqlite3.connect(database_file, check_same_thread=False)
 db = connection.cursor()
 
+
+
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     """Log user in"""
@@ -56,18 +58,21 @@ def login():
             (user_name, user_name)
         )
         rows = db.fetchall()
-        print(rows)
         session['username'] = request.form.get('username')
-
+        
         # Ensure username exist and password is correct
-        for row in rows:
-            if check_password_hash(
-                rows[0][3], request.form.get("password")):
-                # Remember which user has logged in
-                user_id = rows[0][0]
-                session['user_id'] = user_id
-            else:
-                return apology("invalid username and/or password", 400)
+        if rows:
+            for row in rows:
+                if check_password_hash(
+                    rows[0][3], request.form.get("password")):
+                    # Remember which user has logged in
+                    # print(f"AUDIT login")
+                    user_id = rows[0][0]
+                    session['user_id'] = user_id
+                else:
+                    return apology("invalid username and/or password", 400)
+        else:
+            return apology("user not exist", 400)
 
         # Redirect user to home page
         return redirect("/")
@@ -80,12 +85,11 @@ def login():
 @app.route("/logout")
 def logout():
     """Log user out"""
-
     # Forget any user_id
     session.clear()
 
     # Redirect user to login form
-    return redirect("/")
+    return redirect("/login")
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -126,7 +130,7 @@ def register():
 
         # Check if username already exist
         if len(rows) != 0:
-            return apology("username already exist", 400)
+            return apology("email already exists", 400)
 
         # Query insert into database for username
         db.execute(
@@ -171,7 +175,6 @@ def changepass():
         "SELECT * FROM users WHERE email = ?", (email,)
         )
         rows = db.fetchall()
-        # print(rows)
         user_id = rows[0][0]
 
         # Ensure user exists and password is correct
@@ -181,11 +184,13 @@ def changepass():
                 "UPDATE users SET hash = ? WHERE id = ?", (generate_password_hash(
                     request.form.get("password")), user_id)
             )
+
+            connection.commit()
         else:
             return apology("user not exist", 400)
 
         # Redirect user to login
-        return redirect("/")
+        return redirect("/login")
 
 
 @app.route('/download')
@@ -199,7 +204,7 @@ def download_files():
     try:
         return send_file(PATH_VIDEO, as_attachment=True)
     except FileNotFoundError:
-        return "File not found!", 404
+        return apology("File not found!", 404)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -212,11 +217,17 @@ def upload_process_download():
     if request.method == 'POST':
         # Check which button was clicked
         if request.form.get('upload'):
+            # return render_template("apology.html")
             # Call the upload function
-            upload_files()
-            # Created because the process button wasn't showing up after upload
+            fail = upload_files()
+            # print(f"AUDIT: res: {res}")
+            if fail == 0:
+                return apology("No files selected")
+            elif fail == 1:
+                return apology("File(s) not allowed")
+            # # Created because the process button wasn't showing up after upload
             time.sleep(1)
-            return redirect("/")
+            return redirect("/#upload")
         if request.form.get('process'):
             # Call the process function
             print(f"session before processing call: {session['user_id']}")
@@ -244,7 +255,8 @@ def upload_process_download():
 
     except KeyError as err:
         print(f"Error checking session_id: {err}")
-        return render_template('index.html')
+        # return render_template('index.html')
+        return apology("", )
         
 
 @app.route("/about", methods=["GET", "POST"])
@@ -263,6 +275,14 @@ def faq():
 
     if request.method == "GET":
         return render_template("faq.html")
+
+@app.route("/test", methods=["GET", "POST"])
+# @login_required
+def testdef():
+    """Get about app"""
+
+    if request.method == "GET":
+        return render_template("apology.html")
 
 if __name__ == '__main__':
     app.run(debug=True)
