@@ -1,8 +1,13 @@
+"""
+docstring here
+"""
+import sqlite3
 import os
 import tempfile
 import shutil
 import imagesize
 import exiftool
+from datetime import datetime
 from flask import Flask, request, render_template, redirect, send_file, session
 from functools import wraps
 from moviepy import vfx, ImageClip, concatenate_videoclips, VideoFileClip
@@ -25,8 +30,73 @@ TEMP_FILENAME = "_out_temp.mp4"
 FINAL_FILENAME = "_output.mp4"
 # PATH_VIDEO_TEMP = "static/out_temp.mp4"
 # PATH_VIDEO = "static/output.mp4"
-# UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'mp4', 'mov'}
+
+database_file = "invideo.db"
+connection = sqlite3.connect(database_file, check_same_thread=False)
+db = connection.cursor()
+
+def apology(message, code=400):
+    print(f"DEBUG: Inside the apology")
+    print(f"DEBUG: message: {message}")
+    """Render message as an apology to user."""
+    def escape(s):
+        """
+        Escape special characters.
+
+        https://github.com/jacebrowning/memegen#special-characters
+        """
+        for old, new in [
+            ("-", "--"),
+            (" ", "-"),
+            ("_", "__"),
+            ("?", "~q"),
+            ("%", "~p"),
+            ("#", "~h"),
+            ("/", "~s"),
+            ('"', "''"),
+        ]:
+            s = s.replace(old, new)
+        return s
+    return render_template("apology.html", top=code, bottom=escape(message)), code
+
+
+def insert_log(total_files, total_images, total_videos, user_id):
+    try:
+        if user_id:
+            print(f"Insert LOG: {user_id}")
+            print(f"total_files: {total_files}")
+            if total_files > 0:
+                print(f"Inside: total_files: {total_files}")
+                db.execute(
+                    "INSERT INTO logs (user_id, total_files, status, date_start) VALUES ( ?, ?, 'processing', ?)",
+                        (user_id, total_files, datetime.now())
+                )
+                connection.commit()
+
+            else:
+                # Select the max id_log for the user_id
+                db.execute(
+                    "SELECT MAX(id) FROM logs WHERE user_id = ?", (user_id,)
+                )
+
+                rows = db.fetchall()
+                max_id = rows[0][0]
+                print(rows)
+                print(f"total_files: {max_id}")
+
+                db.execute(
+                    "UPDATE logs SET total_images = ?, total_videos = ?, status = 'concluded', date_end = ? WHERE user_id = ? AND id = ?", 
+                        (total_images, total_videos, datetime.now(), user_id, max_id)
+                )
+
+                connection.commit()
+
+
+    except KeyError as err:
+        print(f"Keyerror: {err}")
+        # return None, None
+
 
 def base_dir(user_id):
     try:
@@ -35,7 +105,6 @@ def base_dir(user_id):
             # Create session user folder
             FOLDER_USER = str(user_id) + "/"
             print(f"FOLDER_USER: {FOLDER_USER}")
-            print(f"BASE_PATH: {BASE_PATH}")
 
             UPLOAD_FOLDER = os.path.join(BASE_PATH, FOLDER_USER)
             print(UPLOAD_FOLDER)
@@ -59,13 +128,10 @@ def base_dir(user_id):
             # Create session user folder
             FOLDER_USER = str(session['user_id']) + "/"
             print(f"FOLDER_USER: {FOLDER_USER}")
-            print(f"BASE_PATH: {BASE_PATH}")
             
             # print(UPLOAD_FOLDER)
             UPLOAD_FOLDER = os.path.join(BASE_PATH, FOLDER_USER)
-            print(UPLOAD_FOLDER)
             PATH_VIDEO = STATIC + str(session['user_id']) + FINAL_FILENAME
-            # PATH_VIDEO = os.path.join(STATIC , str(session['user_id']), FINAL_FILENAME)
             print(f"PATH_VIDEO: {PATH_VIDEO}")
 
             # Create the uploads directory if it doesn't exist
@@ -73,7 +139,6 @@ def base_dir(user_id):
                 os.makedirs(UPLOAD_FOLDER)
         else:
             UPLOAD_FOLDER = 'images/'
-            # UPLOAD_FOLDER = UPLOAD_FOLDER    
 
     except RuntimeError as err:
         print(f"Error no try: {err}")
@@ -81,8 +146,8 @@ def base_dir(user_id):
         print(f"Error no try - keyerror: {err}")
         return None, None
 
-
     return UPLOAD_FOLDER, PATH_VIDEO
+
 
 def allowed_file(filename):
     """
@@ -103,7 +168,10 @@ def upload_files():
         files = request.files.getlist('files')
         # Checks if any files are selected
         if not files[0].filename:
-            return 'No files selected'
+            print(f"AUDIT: upload no files")
+            # no files are selected
+            return 0
+
         elif files:
             temp_dir = tempfile.mkdtemp()
             # Save each file to the uploads directory
@@ -114,6 +182,9 @@ def upload_files():
                     # Adding the lower() to avoid issues with the extension
                     # when processing the pictures/videos
                     file.save(os.path.join(temp_dir, filename.lower()))
+                else:
+                    # selected not allowed files
+                    return 1
             for file in files:
                 # secure_filename resolving file with space in name
                 filename = secure_filename(file.filename)
@@ -121,10 +192,11 @@ def upload_files():
                 # when processing the pictures/videos
                 shutil.copy(os.path.join(temp_dir, filename.lower()), UPLOAD_FOLDER)
             shutil.rmtree(temp_dir)
-            return 'Files uploaded successfully.'
+            return 'Files uploaded successfully'
         else:
-            return 'No files uploaded.'
-    return None
+            return apology("No files uploaded", 204)
+    # return None
+    return render_template('apology.html')
 
 
 # Make crop on images greater then 1920 x 1080
@@ -171,11 +243,18 @@ def process_video(user_id):
     # print(f"session {session['user_id']}")
     # print(f"session: {user_id}")
     UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id)
+    total_files = len(os.listdir(UPLOAD_FOLDER))
+    total_images = 0
+    total_videos = 0
+    insert_log(total_files, total_images, total_videos, user_id)
     # print(f"UPLOAD_FOLDER under process: {UPLOAD_FOLDER}")
     # Using sorted to sort the list of files
     # https://docs.python.org/3/howto/sorting.html
     for file in sorted(os.listdir(UPLOAD_FOLDER)):
         if file.endswith(".jpg") or file.endswith(".jpeg") or file.endswith(".png"):
+            # cont images
+            total_images = total_images + 1
+
             # with open("images/" + file, "rb") as image_file:
             with open(UPLOAD_FOLDER + file, "rb") as fp:
             # with open("images/" + file, "rb") as fp:
@@ -225,6 +304,7 @@ def process_video(user_id):
 
         # If file is video .mp4 or .mov
         if file.endswith(".mp4") or file.endswith(".mov"):
+            total_videos = total_videos + 1
             clip = VideoFileClip(UPLOAD_FOLDER + file)
             clip = clip.with_effects([vfx.Resize(height=HEIGHT_DEFAULT)])
             clip = clip.with_effects([vfx.FadeIn(FADEIN_TIME)])
@@ -232,16 +312,11 @@ def process_video(user_id):
             clips.append(clip)
 
     video_clip = concatenate_videoclips(clips, method='compose')
-    # video_clip.write_videofile(PATH_VIDEO_TEMP, fps=24)
     PATH_VIDEO_TEMP = STATIC + str(user_id) + TEMP_FILENAME
-    # PATH_VIDEO = STATIC + str(user_id) + FINAL_FILENAME
     video_clip.write_videofile(PATH_VIDEO_TEMP, fps=24)
-    # FINAL_FILENAME
-    # PATH_VIDEO = "static/output.mp4"
+    insert_log(0, total_images, total_videos, user_id)
 
     if os.path.exists(PATH_VIDEO):
-        # os.remove(PATH_VIDEO)
-        # os.rename(PATH_VIDEO_TEMP, PATH_VIDEO)
         os.remove(PATH_VIDEO)
         os.rename(PATH_VIDEO_TEMP, PATH_VIDEO)
     else:
@@ -274,7 +349,6 @@ def delete_files():
 def check_video_exists():
     # print(f"AUDIT check_video_exists")
     # print(f"session inside check_video_exists: {session['user_id']}")
-    # PATH_VIDEO = STATIC + str(session['user_id']) + FINAL_FILENAME
     
     UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id = None)
     # print(f"PATH_VIDEO: {PATH_VIDEO}")
@@ -315,26 +389,3 @@ def login_required(f):
         return f(*args, **kwargs)
 
     return decorated_function
-
-
-def apology(message, code=400):
-    """Render message as an apology to user."""
-    def escape(s):
-        """
-        Escape special characters.
-
-        https://github.com/jacebrowning/memegen#special-characters
-        """
-        for old, new in [
-            ("-", "--"),
-            (" ", "-"),
-            ("_", "__"),
-            ("?", "~q"),
-            ("%", "~p"),
-            ("#", "~h"),
-            ("/", "~s"),
-            ('"', "''"),
-        ]:
-            s = s.replace(old, new)
-        return s
-    return render_template("apology.html", top=code, bottom=escape(message)), code

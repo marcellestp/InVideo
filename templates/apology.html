@@ -1,5 +1,9 @@
 {% extends 'layout.html' %}
 
     {% block body %}
-
-    {% endblock %}
+    <br>
+        <div class="card-body text-center">
+            <br>
+            <img alt="{{ bottom }}" class="border img-fluid" src="https://api.memegen.link/images/custom/{{ top | urlencode }}/{{ bottom | urlencode }}.jpg?background=https://m.media-amazon.com/images/I/71L8da1zzQL.jpg&width=300" title="{{ top }}">
+        </div>
+        {% endblock %}
