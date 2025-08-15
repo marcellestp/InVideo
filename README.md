@@ -12,6 +12,10 @@ This app was created based on my need to create videos. I have a lot of videos a
 
 With InVideo, you can combine photos and videos and create a beautiful memory. Each video will have standard photos/videos, transitions, duration, and resolution.
 
+# Requirements
+The `requirements.txt` specifies the modules required for the application to work properly.
+
+Ps.: Side note, the pyEXIFTool will be using the external binary `exiftool`, which is necessary to be in your system. You can download the binary from the link [https://exiftool.org/install.html](https://exiftool.org/install.html)
 
 # Features
 InVideo will allow you to:
@@ -151,7 +155,6 @@ When processing the video, the name of the generated output video file will also
 
 Users who have questions that the `FAQ` section failed to answer can send messages with questions or suggestions to the contact email `marcellestp@gmail.com`.
 
-The `requirements.txt` specifies the modules required for the application to work properly.
 
 # Reference
 - BootStrap
