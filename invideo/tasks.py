@@ -1,5 +1,5 @@
 """
-docstring here
+Module responsible for most of the operations
 """
 import sqlite3
 import os
@@ -20,16 +20,13 @@ TIME = 3
 FADEIN_TIME = 0.2
 FADEOUT_TIME = 0.2
 
-# UPLOAD_FOLDER = 'images/'
-# PATH_VIDEO_TEMP = "static/out_temp.mp4"
-# PATH_VIDEO = "static/output.mp4"
+# Specify a directory to store uploaded files.
 BASE_PATH = 'images/'
 STATIC = "static/"
+# PATH_VIDEO = "static/output.mp4"
 # PATH_VIDEO_TEMP = "static/out_temp.mp4"
 TEMP_FILENAME = "_out_temp.mp4"
 FINAL_FILENAME = "_output.mp4"
-# PATH_VIDEO_TEMP = "static/out_temp.mp4"
-# PATH_VIDEO = "static/output.mp4"
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'mp4', 'mov'}
 
 database_file = "invideo.db"
@@ -37,9 +34,9 @@ connection = sqlite3.connect(database_file, check_same_thread=False)
 db = connection.cursor()
 
 def apology(message, code=400):
-    print(f"DEBUG: Inside the apology")
-    print(f"DEBUG: message: {message}")
-    """Render message as an apology to user."""
+    """
+    Render message as an apology to user.
+    """
     def escape(s):
         """
         Escape special characters.
@@ -62,12 +59,14 @@ def apology(message, code=400):
 
 
 def insert_log(total_files, total_images, total_videos, user_id):
+    """
+    Insert log in the begining of the process 
+     and update de log in the end of the process.
+    """
     try:
         if user_id:
-            print(f"Insert LOG: {user_id}")
-            print(f"total_files: {total_files}")
             if total_files > 0:
-                print(f"Inside: total_files: {total_files}")
+                # print(f"Log: total_files: {total_files}")
                 db.execute(
                     "INSERT INTO logs (user_id, total_files, status, date_start) VALUES ( ?, ?, 'processing', ?)",
                         (user_id, total_files, datetime.now())
@@ -82,8 +81,8 @@ def insert_log(total_files, total_images, total_videos, user_id):
 
                 rows = db.fetchall()
                 max_id = rows[0][0]
-                print(rows)
-                print(f"total_files: {max_id}")
+                # print(rows)
+                # print(f"max_id log: {max_id}")
 
                 db.execute(
                     "UPDATE logs SET total_images = ?, total_videos = ?, status = 'concluded', date_end = ? WHERE user_id = ? AND id = ?", 
@@ -99,15 +98,18 @@ def insert_log(total_files, total_images, total_videos, user_id):
 
 
 def base_dir(user_id):
+    """
+    It will concatenate the user_id to the name of the output video and the file folder
+     to store the files uploaded by the user in their session.
+    """
     try:
         if user_id:
             # print(f"session['user_id']: {session['user_id']}")
             # Create session user folder
             FOLDER_USER = str(user_id) + "/"
-            print(f"FOLDER_USER: {FOLDER_USER}")
+            # print(f"FOLDER_USER: {FOLDER_USER}")
 
             UPLOAD_FOLDER = os.path.join(BASE_PATH, FOLDER_USER)
-            print(UPLOAD_FOLDER)
             PATH_VIDEO = STATIC + str(user_id) + FINAL_FILENAME
 
             # Create the uploads directory if it doesn't exist
@@ -124,15 +126,12 @@ def base_dir(user_id):
 
     try:
         if session['user_id']:
-            print(f"session['user_id']: {session['user_id']}")
+            # print(f"session['user_id']: {session['user_id']}")
             # Create session user folder
             FOLDER_USER = str(session['user_id']) + "/"
-            print(f"FOLDER_USER: {FOLDER_USER}")
-            
-            # print(UPLOAD_FOLDER)
             UPLOAD_FOLDER = os.path.join(BASE_PATH, FOLDER_USER)
             PATH_VIDEO = STATIC + str(session['user_id']) + FINAL_FILENAME
-            print(f"PATH_VIDEO: {PATH_VIDEO}")
+            # print(f"PATH_VIDEO: {PATH_VIDEO}")
 
             # Create the uploads directory if it doesn't exist
             if not os.path.exists(UPLOAD_FOLDER):
@@ -151,7 +150,7 @@ def base_dir(user_id):
 
 def allowed_file(filename):
     """
-    It will ensure that only the defined extensions are accepted when uploading files.
+    Ensure that only the defined extensions are accepted when uploading files.
     """
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -159,7 +158,7 @@ def allowed_file(filename):
 
 def upload_files():
     """
-    It will be responsible for uploading only files with the defined extensions.
+    Upload files selected by the user uploading only files with the allowed extensions.
     """
     if request.method == 'POST':
         # print(session['user_id'])
@@ -168,7 +167,7 @@ def upload_files():
         files = request.files.getlist('files')
         # Checks if any files are selected
         if not files[0].filename:
-            print(f"AUDIT: upload no files")
+            # print(f"AUDIT: upload no files")
             # no files are selected
             return 0
 
@@ -202,7 +201,7 @@ def upload_files():
 # Make crop on images greater then 1920 x 1080
 def crop_image(user_id, img_height, img_width, file):
     """
-    It will define default height and width according to the image's position
+    Define default height and width according to the image's position
      (vertical or horizontal).
     """
     UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id)
@@ -236,7 +235,7 @@ def crop_image(user_id, img_height, img_width, file):
 
 def process_video(user_id):
     """
-    It will be responsible for concatenating the existing files
+    Concatenates the existing files
      in the user's directory and processing the video at the end.
     """
     # print(f"AUDIT: Process_video")
@@ -327,7 +326,8 @@ def process_video(user_id):
 
 def delete_files():
     """
-    It will delete the existing files in the user's directory.
+    Delete the existing files in the user's directory
+     and the video generated by the app.
     """
     if request.method == 'POST':
         UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id = None)
@@ -347,6 +347,10 @@ def delete_files():
 
 # Check if video file exist. If yes, the download button will activate
 def check_video_exists():
+    """
+    Checks if the processed video exists. If yes, 
+     the View and Download buttons will activate.
+    """
     # print(f"AUDIT check_video_exists")
     # print(f"session inside check_video_exists: {session['user_id']}")
     
@@ -361,6 +365,9 @@ def check_video_exists():
 
 # Check if the upload file exist. If yes, the process button will activate
 def check_file_upload_exists():
+    """
+    Check if there are files sent. If yes, the process button will activate
+    """
     UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id = None)
     if os.listdir(UPLOAD_FOLDER) != []:
         exist_file = 1
@@ -371,6 +378,9 @@ def check_file_upload_exists():
 
   # Check how many uploaded files exist
 def check_quant_upload_exists():
+    """
+    Check how many uploaded files exist to present on the main page for the user.
+    """
     UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id = None)
     file_list = len([file for file in os.scandir(UPLOAD_FOLDER) if file.is_file()])
     return file_list
