@@ -1,5 +1,6 @@
 """
-docstring here
+InVideo will allow to: Upload photos and videos; Create videos with photos and videos;
+ Download videos; Delete photos and videos.
 """
 import sqlite3
 import multiprocessing
@@ -16,13 +17,6 @@ app = Flask(__name__)
 app.secret_key = 'your_super_secret_key_here'
 
 
-# Specify a directory to store uploaded files.
-UPLOAD_FOLDER = 'images/'
-BASE_PATH = 'images/'
-FILES_PATH = os.path.join(UPLOAD_FOLDER)
-PATH_VIDEO_TEMP = "static/out_temp.mp4"
-PATH_VIDEO = "static/output.mp4"
-
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -31,7 +25,6 @@ app.config["SESSION_TYPE"] = "filesystem"
 database_file = "invideo.db"
 connection = sqlite3.connect(database_file, check_same_thread=False)
 db = connection.cursor()
-
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -146,12 +139,11 @@ def register():
 
 
 @app.route("/changepass", methods=["GET", "POST"])
-# @login_required
 def changepass():
-    """Change password"""
+    """Change user password"""
 
     # User reached route via POST (as by submitting a form via POST)
-    print("here")
+    # print("here")
     if request.method == "GET":
 
         return render_template("changepass.html")
@@ -175,10 +167,10 @@ def changepass():
         "SELECT * FROM users WHERE email = ?", (email,)
         )
         rows = db.fetchall()
-        user_id = rows[0][0]
 
         # Ensure user exists and password is correct
         if rows:
+            user_id = rows[0][0]
             # Query update password into database for username
             db.execute(
                 "UPDATE users SET hash = ? WHERE id = ?", (generate_password_hash(
@@ -197,7 +189,7 @@ def changepass():
 @login_required
 def download_files():
     """
-    It will download the video files in the user's Downloads directory.
+    Download the video files in the user's Downloads directory.
     """
     PATH_VIDEO = STATIC + str(session['user_id']) + FINAL_FILENAME
     # print(PATH_VIDEO)
@@ -208,11 +200,11 @@ def download_files():
 
 
 @app.route('/', methods=['GET', 'POST'])
-# @login_required
+@login_required
 def upload_process_download():
     """
-    It will be responsible for identify which option the user
-     is selecting on the system's main page.
+    Identify which option the user
+     is selecting on the app's main page.
     """
     if request.method == 'POST':
         # Check which button was clicked
@@ -230,7 +222,7 @@ def upload_process_download():
             return redirect("/#upload")
         if request.form.get('process'):
             # Call the process function
-            print(f"session before processing call: {session['user_id']}")
+            # print(f"session before processing call: {session['user_id']}")
             process = multiprocessing.Process(target=process_video, kwargs={"user_id": session['user_id']})
             process.start() # Begin the process execution
             process.join()  # Wait for the process to finish
@@ -254,34 +246,25 @@ def upload_process_download():
             return render_template('index.html')
 
     except KeyError as err:
-        print(f"Error checking session_id: {err}")
+        # print(f"Error checking session_id: {err}")
         return render_template('index.html')
 
 
 @app.route("/about", methods=["GET", "POST"])
-# @login_required
 def about():
-    """Get about app"""
+    """Contains information about the InVideo"""
 
     if request.method == "GET":
         return render_template("about.html")
 
 
 @app.route("/faq", methods=["GET", "POST"])
-# @login_required
 def faq():
-    """Get about app"""
+    """Frequently asked questions about the app"""
 
     if request.method == "GET":
         return render_template("faq.html")
 
-@app.route("/test", methods=["GET", "POST"])
-# @login_required
-def testdef():
-    """Get about app"""
-
-    if request.method == "GET":
-        return render_template("apology.html")
 
 if __name__ == '__main__':
     app.run(debug=True)
