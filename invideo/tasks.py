@@ -198,8 +198,45 @@ def upload_files():
     return render_template('apology.html')
 
 
-# Make crop on images greater then 1920 x 1080
-def crop_image(user_id, img_height, img_width, file):
+# # Make crop on images greater then 1920 x 1080
+# def crop_image(user_id, img_height, img_width, file):
+#     """
+#     Define default height and width according to the image's position
+#      (vertical or horizontal).
+#     """
+#     UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id)
+#     # print(f"UPLOAD_FOLDER inside crop_image: {UPLOAD_FOLDER}")
+#     # Vertical image
+#     if img_height > img_width:
+#         print(f"Vertical inside crop_image: {img_width}")
+#         # WIDTH_DEFAULT = 1080
+#         # clip = ImageClip(app.config['UPLOAD_FOLDER'] + file)
+#         clip = ImageClip(UPLOAD_FOLDER + file)
+#         clip = clip.with_effects([vfx.Resize(height=HEIGHT_DEFAULT)])
+#         new_width, new_height = clip.size
+#         # new_height_center = new_height / 2
+#         # y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
+#         # y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
+#         # clip = clip.with_effects([
+#         #     vfx.Crop(x1=0, y1=y1_pos, x2=HEIGHT_DEFAULT, y2=y2_pos)])
+#     else:
+#         # Horizonte image
+#         print(f"Horizontal inside crop_image: {img_width}")
+#         # WIDTH_DEFAULT = 1920
+#         clip = ImageClip(UPLOAD_FOLDER + file)
+#         clip = clip.with_effects([vfx.Resize(width=WIDTH_DEFAULT)])
+#         new_width, new_height = clip.size
+#         new_height_center = new_height / 2
+#         y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
+#         y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
+#         clip = clip.with_effects([
+#             vfx.Crop(x1=0, y1=y1_pos, x2=WIDTH_DEFAULT, y2=y2_pos)])
+
+#     return clip
+
+
+# Make crop on Vertical images
+def crop_image_vert(user_id, img_height, img_width, file):
     """
     Define default height and width according to the image's position
      (vertical or horizontal).
@@ -207,28 +244,45 @@ def crop_image(user_id, img_height, img_width, file):
     UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id)
     # print(f"UPLOAD_FOLDER inside crop_image: {UPLOAD_FOLDER}")
     # Vertical image
-    if img_height > img_width:
-        # WIDTH_DEFAULT = 1080
-        # clip = ImageClip(app.config['UPLOAD_FOLDER'] + file)
-        clip = ImageClip(UPLOAD_FOLDER + file)
-        clip = clip.with_effects([vfx.Resize(height=HEIGHT_DEFAULT)])
-        new_width, new_height = clip.size
-        new_height_center = new_height / 2
-        y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
-        y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
-        clip = clip.with_effects([
-            vfx.Crop(x1=0, y1=y1_pos, x2=HEIGHT_DEFAULT, y2=y2_pos)])
-    else:
-        # Horizonte image
-        # WIDTH_DEFAULT = 1920
-        clip = ImageClip(UPLOAD_FOLDER + file)
-        clip = clip.with_effects([vfx.Resize(width=WIDTH_DEFAULT)])
-        new_width, new_height = clip.size
-        new_height_center = new_height / 2
-        y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
-        y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
-        clip = clip.with_effects([
-            vfx.Crop(x1=0, y1=y1_pos, x2=WIDTH_DEFAULT, y2=y2_pos)])
+    # if img_height > img_width:
+    print(f"Vertical inside crop_image: {img_width}")
+    # WIDTH_DEFAULT = 1080
+    # clip = ImageClip(app.config['UPLOAD_FOLDER'] + file)
+    clip = ImageClip(UPLOAD_FOLDER + file)
+    clip = clip.with_effects([vfx.Resize(height=HEIGHT_DEFAULT)])
+    new_width, new_height = clip.size
+    # new_height_center = new_height / 2
+    # y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
+    # y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
+    # clip = clip.with_effects([
+    #     vfx.Crop(x1=0, y1=y1_pos, x2=HEIGHT_DEFAULT, y2=y2_pos)])
+    
+
+    return clip
+
+
+# Make crop on horizontal images 
+def crop_image_horiz(user_id, img_height, img_width, file):
+    """
+    Define default height and width according to the image's position
+     (vertical or horizontal).
+    """
+    UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id)
+    # print(f"UPLOAD_FOLDER inside crop_image: {UPLOAD_FOLDER}")
+    # Vertical image
+    # if img_height > img_width:
+
+    # Horizonte image
+    print(f"Horizontal inside crop_image: {img_width}")
+    # WIDTH_DEFAULT = 1920
+    clip = ImageClip(UPLOAD_FOLDER + file)
+    clip = clip.with_effects([vfx.Resize(width=WIDTH_DEFAULT)])
+    new_width, new_height = clip.size
+    new_height_center = new_height / 2
+    y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
+    y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
+    clip = clip.with_effects([
+        vfx.Crop(x1=0, y1=y1_pos, x2=WIDTH_DEFAULT, y2=y2_pos)])
 
     return clip
 
@@ -267,7 +321,7 @@ def process_video(user_id):
                     except KeyError:
                         img_width, img_height = imagesize.get(UPLOAD_FOLDER + file)
                     # Crop images to the default size of 1920x1080
-                    clip = crop_image(user_id, img_height, img_width, file)
+                    # clip = crop_image(user_id, img_height, img_width, file)
 
                     try:
                         res = file_exif[0]['EXIF:Orientation']
@@ -278,8 +332,10 @@ def process_video(user_id):
                         try:
 
                             if file_exif[0]['EXIF:Orientation'] in (1, 2):
+                                clip = crop_image_horiz(user_id, img_height, img_width, file)
                                 clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
                             elif file_exif[0]['EXIF:Orientation'] in (6, 7):
+                                clip = crop_image_vert(user_id, img_height, img_width, file)
                                 clip = clip.with_duration(TIME)
                                 clip = clip.with_effects([vfx.Resize(width=HEIGHT_DEFAULT)])
                                 clip = clip.with_effects([vfx.Rotate(270)])
@@ -288,8 +344,10 @@ def process_video(user_id):
                                 # clip = clip.with_effects([vfx.Resize(LAMBDA_EFFECT)])
                                 clips.append(clip)
                             elif file_exif[0]['EXIF:Orientation'] in (5, 8):
+                                clip = crop_image_vert(user_id, img_height, img_width, file)
                                 clips.append(clip.with_duration(TIME).with_effects([vfx.Resize(width=HEIGHT_DEFAULT), vfx.Rotate(90), vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
                             elif file_exif[0]['EXIF:Orientation'] in (3, 4):
+                                clip = crop_image_horiz(user_id, img_height, img_width, file)
                                 clips.append(clip.with_duration(TIME).with_effects([vfx.Resize(width=HEIGHT_DEFAULT), vfx.Rotate(180), vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
                             else:
                                 clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
