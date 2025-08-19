@@ -231,7 +231,7 @@ def upload_process_download():
         if request.form.get('delete'):
             # Call the delete function
             delete_files()
-            return redirect('/')
+            return redirect('/#upload')
 
     # print(f"session before check exist video: {session['user_id']}")
     try:
