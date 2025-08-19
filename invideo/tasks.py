@@ -18,6 +18,7 @@ WIDTH_DEFAULT = 1920
 ratio_hd = round(1920 / 1080, 2)
 clips = []
 TIME = 3
+# TIME = 1
 FADEIN_TIME = 0.2
 FADEOUT_TIME = 0.2
 
@@ -285,45 +286,23 @@ def crop_image_horiz(user_id, img_height, img_width, file):
     """
     UPLOAD_FOLDER, PATH_VIDEO = base_dir(user_id)
     clip = ImageClip(UPLOAD_FOLDER + file)
-    # print(f"UPLOAD_FOLDER inside crop_image: {UPLOAD_FOLDER}")
     if img_width > img_height:
-        # print(f"Horizontal inside crop_image: {img_width}")
         # WIDTH_DEFAULT = 1920
         clip = clip.with_effects([vfx.Resize(width=WIDTH_DEFAULT)])
         new_width, new_height = clip.size
-        print(f"Horizontal new_width crop_image: {new_width}")
-        print(f"Horizontal new_height crop_image: {new_height}")
 
         # Check the aspect ratio, and if diff of 1.77, crop the image
         ratio = round(new_width / new_height, 2)
-        # print(f"Horizontal ratio crop_image: {ratio}")
-        # print(f"Horizontal ratio hd crop_image: {ratio_hd}")
         if ratio != ratio_hd:
             new_height_center = new_height / 2
             y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
             y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
-            # print(f"Horizontal inside crop_image: {y1_pos}")
-            # print(f"Horizontal inside crop_image: {y2_pos}")
             clip = clip.with_effects([
                 vfx.Crop(x1=0, y1=y1_pos, x2=WIDTH_DEFAULT, y2=y2_pos)])
     else:
-        clip = clip.with_effects([vfx.Resize(width=HEIGHT_DEFAULT)])
-        new_width, new_height = clip.size
-        print(f"Horizontal new_width crop_image: {new_width}")
-        print(f"Horizontal new_height crop_image: {new_height}")
-
-        # Check the aspect ratio, and if diff of 1.77, crop the image
-        ratio = round(new_width / new_height, 2)
-        # print(f"Horizontal ratio crop_image: {ratio}")
-        # print(f"Horizontal ratio hd crop_image: {ratio_hd}")
-        if ratio != ratio_hd:
-            new_height_center = new_height / 2
-            y1_pos = new_height_center - (HEIGHT_DEFAULT / 2)
-            y2_pos = new_height_center + (HEIGHT_DEFAULT / 2)
-            # print(f"Horizontal inside crop_image: {y1_pos}")
-            # print(f"Horizontal inside crop_image: {y2_pos}")
-            clip = clip.with_effects([
-                vfx.Crop(x1=0, y1=y1_pos, x2=HEIGHT_DEFAULT, y2=y2_pos)])
+        # There are photos that despite having orientation = 1 which means horizontal, 
+        # are vertical if the height is greater than the width
+        clip = crop_image_vert(user_id, img_height, img_width, file)
 
     return clip
 
@@ -340,8 +319,8 @@ def process_video(user_id):
     total_files = len(os.listdir(UPLOAD_FOLDER))
     total_images = 0
     total_videos = 0
+    # Insert into the log table at the beginning of the process
     insert_log(total_files, total_images, total_videos, user_id)
-    # print(f"UPLOAD_FOLDER under process: {UPLOAD_FOLDER}")
     # Using sorted to sort the list of files
     # https://docs.python.org/3/howto/sorting.html
     for file in sorted(os.listdir(UPLOAD_FOLDER)):
@@ -354,6 +333,7 @@ def process_video(user_id):
             # with open("images/" + file, "rb") as fp:
                 with exiftool.ExifToolHelper() as image_file:
                     file_exif = image_file.get_metadata(fp.name)
+                    print(f"AUDIT: file_exif => {file_exif}")
                     try:
                         img_height = file_exif[0]['File:ImageHeight']
                         img_width = file_exif[0]['File:ImageWidth']
@@ -365,22 +345,23 @@ def process_video(user_id):
                     # clip = crop_image(user_id, img_height, img_width, file)
 
                     try:
-                        res = file_exif[0]['EXIF:Orientation']
+                        has_orientation = file_exif[0]['EXIF:Orientation']
                     except KeyError as err:
-                        res = False
+                        has_orientation = False
 
-                    if file_exif and res:
+                    if file_exif and has_orientation:
                         try:
                             # Horizontal position
-                            if file_exif[0]['EXIF:Orientation'] in (1, 2):
-                                print(f"AUDIT: 1, 2")
-                                print(f"Orientation {file_exif[0]['EXIF:Orientation']}")
+                            # if file_exif[0]['EXIF:Orientation'] in (1, 2):
+                            if has_orientation in (1, 2):
+                                # print(f"AUDIT: 1, 2")
+                                # print(f"Orientation {file_exif[0]['EXIF:Orientation']}")
                                 clip = crop_image_horiz(user_id, img_height, img_width, file)
                                 clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
                             # Vertical position
-                            elif file_exif[0]['EXIF:Orientation'] in (6, 7):
-                                print(f"AUDIT: 6, 7")
-                                print(f"Orientation {file_exif[0]['EXIF:Orientation']}")
+                            elif has_orientation in (6, 7):
+                                # print(f"AUDIT: 6, 7")
+                                # print(f"Orientation {file_exif[0]['EXIF:Orientation']}")
                                 clip = crop_image_vert(user_id, img_height, img_width, file)
                                 clip = clip.with_duration(TIME)
                                 clip = clip.with_effects([vfx.Rotate(270)])
@@ -389,22 +370,22 @@ def process_video(user_id):
                                 # clip = clip.with_effects([vfx.Resize(LAMBDA_EFFECT)])
                                 clips.append(clip)
                             # Vertical position
-                            elif file_exif[0]['EXIF:Orientation'] in (5, 8):
-                                print(f"AUDIT: 5, 8")
-                                print(f"Orientation {file_exif[0]['EXIF:Orientation']}")
+                            elif has_orientation in (5, 8):
+                                # print(f"AUDIT: 5, 8")
+                                # print(f"Orientation {file_exif[0]['EXIF:Orientation']}")
                                 clip = crop_image_vert(user_id, img_height, img_width, file)
                                 clip = clip.with_effects([vfx.Rotate(90)])
                                 clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
                             # Horizontal position
-                            elif file_exif[0]['EXIF:Orientation'] in (3, 4):
-                                print(f"AUDIT: 3, 4")
-                                print(f"Orientation {file_exif[0]['EXIF:Orientation']}")
+                            elif has_orientation in (3, 4):
+                                # print(f"AUDIT: 3, 4")
+                                # print(f"Orientation {file_exif[0]['EXIF:Orientation']}")
                                 clip = crop_image_horiz(user_id, img_height, img_width, file)
                                 clip = clip.with_effects([vfx.Rotate(180)])
                                 clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
                             else:
-                                print(f"AUDIT: else")
-                                print(f"Orientation {file_exif[0]['EXIF:Orientation']}")
+                                # print(f"AUDIT: else")
+                                # print(f"Orientation {file_exif[0]['EXIF:Orientation']}")
                                 clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
                         except AttributeError:
                             clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
@@ -412,6 +393,7 @@ def process_video(user_id):
                             clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
 
                     else:
+                        clip = crop_image_horiz(user_id, img_height, img_width, file)
                         clips.append(clip.with_duration(TIME).with_effects([vfx.FadeIn(FADEIN_TIME), vfx.FadeOut(FADEOUT_TIME)]))
 
         # If file is video .mp4 or .mov
@@ -427,6 +409,7 @@ def process_video(user_id):
     video_clip = concatenate_videoclips(clips, method='compose')
     PATH_VIDEO_TEMP = STATIC + str(user_id) + TEMP_FILENAME
     video_clip.write_videofile(PATH_VIDEO_TEMP, fps=24)
+    # Insert into the log table at the end of the process
     insert_log(0, total_images, total_videos, user_id)
 
     if os.path.exists(PATH_VIDEO):
