@@ -32,8 +32,52 @@ FINAL_FILENAME = "_output.mp4"
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'mp4', 'mov'}
 
 database_file = "invideo.db"
-connection = sqlite3.connect(database_file, check_same_thread=False)
-db = connection.cursor()
+conn = sqlite3.connect(database_file, check_same_thread=False)
+db = conn.cursor()
+
+
+# Create the database
+def initialize_database():
+
+    try:
+        with sqlite3.connect('invideo.db') as conn:
+
+            # Create Table: users
+            db.execute('''
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    username TEXT NOT NULL,
+                    email TEXT NOT NULL,
+                    hash TEXT NOT NULL,
+                    date DATETIME
+                )
+            ''')
+
+            # Create unique index email
+            db.execute('''
+                CREATE UNIQUE INDEX IF NOT EXISTS email ON users (email)
+            ''')  
+
+            # Create Table: logs       
+            db.execute('''
+                CREATE TABLE IF NOT EXISTS logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    user_id INTEGER NOT NULL, 
+                    total_images INTEGER, 
+                    total_videos INTEGER, 
+                    total_files INTEGER, 
+                    status TEXT, 
+                    date_start DATETIME, 
+                    date_end DATETIME, 
+                    FOREIGN KEY(user_id) REFERENCES users(id)       
+                )
+            ''')
+
+            conn.commit()
+            print("Database and table created successfully.")
+    except sqlite3.Error as e:
+        print(f"Error creating database: {e}")
+
 
 def apology(message, code=400):
     """
@@ -73,7 +117,7 @@ def insert_log(total_files, total_images, total_videos, user_id):
                     "INSERT INTO logs (user_id, total_files, status, date_start) VALUES ( ?, ?, 'processing', ?)",
                         (user_id, total_files, datetime.now())
                 )
-                connection.commit()
+                conn.commit()
 
             else:
                 # Select the max id_log for the user_id
@@ -91,7 +135,7 @@ def insert_log(total_files, total_images, total_videos, user_id):
                         (total_images, total_videos, datetime.now(), user_id, max_id)
                 )
 
-                connection.commit()
+                conn.commit()
 
 
     except KeyError as err:
@@ -333,7 +377,7 @@ def process_video(user_id):
             # with open("images/" + file, "rb") as fp:
                 with exiftool.ExifToolHelper() as image_file:
                     file_exif = image_file.get_metadata(fp.name)
-                    print(f"AUDIT: file_exif => {file_exif}")
+                    # print(f"AUDIT: file_exif => {file_exif}")
                     try:
                         img_height = file_exif[0]['File:ImageHeight']
                         img_width = file_exif[0]['File:ImageWidth']
@@ -460,6 +504,7 @@ def check_video_exists():
     return exist_video
     # return None
 
+
 # Check if the upload file exist. If yes, the process button will activate
 def check_file_upload_exists():
     """
@@ -473,7 +518,7 @@ def check_file_upload_exists():
     return exist_file
 
 
-  # Check how many uploaded files exist
+# Check how many uploaded files exist
 def check_quant_upload_exists():
     """
     Check how many uploaded files exist to present on the main page for the user.

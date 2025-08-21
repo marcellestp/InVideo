@@ -9,7 +9,6 @@ import time
 from datetime import datetime
 from flask import Flask, request, render_template, redirect, send_file, session
 from invideo.tasks import *
-# from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -20,11 +19,6 @@ app.secret_key = 'your_super_secret_key_here'
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
-# Session(app)
-
-database_file = "invideo.db"
-connection = sqlite3.connect(database_file, check_same_thread=False)
-db = connection.cursor()
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -33,6 +27,9 @@ def login():
 
     # Forget any user_id
     session.clear()
+    
+    # Check if database exists  
+    initialize_database()
 
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
@@ -89,6 +86,9 @@ def logout():
 def register():
     """Register user"""
 
+    # Check if database exists  
+    initialize_database()
+
     if request.method == "GET":
         return render_template("register.html")
 
@@ -131,7 +131,7 @@ def register():
                 , email, generate_password_hash(hash), datetime.now())
         )
 
-        connection.commit()
+        conn.commit()
         login()
 
         # Redirect user to main page
@@ -141,6 +141,9 @@ def register():
 @app.route("/changepass", methods=["GET", "POST"])
 def changepass():
     """Change user password"""
+
+    # Check if database exists  
+    initialize_database()
 
     # User reached route via POST (as by submitting a form via POST)
     # print("here")
@@ -177,7 +180,7 @@ def changepass():
                     request.form.get("password")), user_id)
             )
 
-            connection.commit()
+            conn.commit()
         else:
             return apology("user not exist", 400)
 
